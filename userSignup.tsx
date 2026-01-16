@@ -52,7 +52,7 @@ const UserSignup: React.FC = () => {
 
   const isFieldValid = (name: string): boolean => {
     if (name === 'middleName') return true;
-    if (name === 'username') return formData.username.length >= 9; // Enforce at least 9 characters
+    if (name === 'username') return formData.username.length >= 9; // Min 9 characters
     if (name === 'firstName') return !!formData.firstName;
     if (name === 'lastName') return !!formData.lastName;
     if (name === 'college') return !!formData.college;
@@ -62,7 +62,6 @@ const UserSignup: React.FC = () => {
     return true;
   };
 
-  // Helper to determine if a specific text/select field should show error state
   const shouldShowFieldLevelError = (name: string): boolean => {
     if (!hasSubmittedOnce) return false;
     // Hide red only while actively focused/editing
@@ -73,7 +72,6 @@ const UserSignup: React.FC = () => {
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value;
     if (!val.startsWith('@')) val = '@' + val;
-    // Allow alphanum after @
     const cleaned = '@' + val.slice(1).toLowerCase().replace(/[^a-z0-9]/g, '');
     setFormData({ ...formData, username: cleaned });
   };
@@ -173,10 +171,10 @@ const UserSignup: React.FC = () => {
         <div className="h-[1.5px] w-full max-w-2xl bg-gradient-to-r from-transparent via-fuchsia-500/40 to-transparent mx-auto mt-4"></div>
       </div>
 
-      <form onSubmit={handleSubmit} className="relative z-10 w-full max-w-5xl flex flex-col animate-fade-in-up">
+      <form onSubmit={handleSubmit} className="relative z-10 w-full max-w-5xl flex flex-col">
         
         {/* Username */}
-        <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8">
+        <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8 animate-stagger-up" style={{ animationDelay: '0ms' }}>
           <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${shouldShowFieldLevelError('username') ? 'text-red-500' : (formData.username.length > 1 ? 'text-white' : 'text-white/30')} group-hover:text-white`}>
             USERNAME:
           </label>
@@ -195,33 +193,65 @@ const UserSignup: React.FC = () => {
           </div>
         </div>
 
-        {/* Names Row */}
-        {[
-          { key: 'firstName', label: 'FIRST NAME' },
-          { key: 'middleName', label: 'MIDDLE NAME' },
-          { key: 'lastName', label: 'LAST NAME' }
-        ].map((field) => (
-          <div key={field.key} className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8">
-            <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${shouldShowFieldLevelError(field.key) ? 'text-red-500' : (formData[field.key as keyof typeof formData] ? 'text-white' : 'text-white/30')} group-hover:text-white`}>
-              {field.label}:
-            </label>
-            <div className={`flex-1 ${shakeFields[field.key] ? 'animate-shake' : ''}`}>
-              <input
-                type="text"
-                name={field.key}
-                value={formData[field.key as keyof typeof formData]}
-                onFocus={() => setFocusedField(field.key)}
-                onBlur={() => setFocusedField(null)}
-                onChange={handleNameChange}
-                className={getTextFieldStyle(field.key, !!formData[field.key as keyof typeof formData], focusedField === field.key)}
-                autoComplete="off"
-              />
-            </div>
+        {/* First Name */}
+        <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8 animate-stagger-up" style={{ animationDelay: '100ms' }}>
+          <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${shouldShowFieldLevelError('firstName') ? 'text-red-500' : (formData.firstName ? 'text-white' : 'text-white/30')} group-hover:text-white`}>
+            FIRST NAME:
+          </label>
+          <div className={`flex-1 ${shakeFields.firstName ? 'animate-shake' : ''}`}>
+            <input
+              type="text"
+              name="firstName"
+              value={formData.firstName}
+              onFocus={() => setFocusedField('firstName')}
+              onBlur={() => setFocusedField(null)}
+              onChange={handleNameChange}
+              className={getTextFieldStyle('firstName', !!formData.firstName, focusedField === 'firstName')}
+              autoComplete="off"
+            />
           </div>
-        ))}
+        </div>
+
+        {/* Middle Name */}
+        <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8 animate-stagger-up" style={{ animationDelay: '200ms' }}>
+          <label className="md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase text-white/30 group-hover:text-white">
+            MIDDLE NAME:
+          </label>
+          <div className="flex-1">
+            <input
+              type="text"
+              name="middleName"
+              value={formData.middleName}
+              onFocus={() => setFocusedField('middleName')}
+              onBlur={() => setFocusedField(null)}
+              onChange={handleNameChange}
+              className={getTextFieldStyle('middleName', !!formData.middleName, focusedField === 'middleName')}
+              autoComplete="off"
+            />
+          </div>
+        </div>
+
+        {/* Last Name */}
+        <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8 animate-stagger-up" style={{ animationDelay: '300ms' }}>
+          <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${shouldShowFieldLevelError('lastName') ? 'text-red-500' : (formData.lastName ? 'text-white' : 'text-white/30')} group-hover:text-white`}>
+            LAST NAME:
+          </label>
+          <div className={`flex-1 ${shakeFields.lastName ? 'animate-shake' : ''}`}>
+            <input
+              type="text"
+              name="lastName"
+              value={formData.lastName}
+              onFocus={() => setFocusedField('lastName')}
+              onBlur={() => setFocusedField(null)}
+              onChange={handleNameChange}
+              className={getTextFieldStyle('lastName', !!formData.lastName, focusedField === 'lastName')}
+              autoComplete="off"
+            />
+          </div>
+        </div>
 
         {/* Phone Number */}
-        <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8">
+        <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8 animate-stagger-up" style={{ animationDelay: '400ms' }}>
           <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${hasSubmittedOnce && !isFieldValid('phone') ? 'text-red-500' : (phoneDigits.some(d => d) ? 'text-white' : 'text-white/30')} group-hover:text-white`}>
             PHONE NUMBER:
           </label>
@@ -229,8 +259,6 @@ const UserSignup: React.FC = () => {
             {phoneDigits.map((digit, idx) => {
               const isFocused = focusedPhoneIdx === idx;
               const hasValue = !!digit;
-              // Error logic: only show red/star if: we have submitted, the block is empty, AND NOT focused.
-              // This ensures that clicking a red block removes ONLY its star, not the entire row's errors.
               const isBlockInError = hasSubmittedOnce && !isFieldValid('phone') && !hasValue && !isFocused;
               
               return (
@@ -259,7 +287,7 @@ const UserSignup: React.FC = () => {
         </div>
 
         {/* Custom College Dropdown */}
-        <div className="flex flex-col md:flex-row md:items-center gap-3 group relative z-50 mb-6 md:mb-8">
+        <div className="flex flex-col md:flex-row md:items-center gap-3 group relative z-50 mb-6 md:mb-8 animate-stagger-up" style={{ animationDelay: '500ms' }}>
           <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${shouldShowFieldLevelError('college') ? 'text-red-500' : (formData.college ? 'text-white' : 'text-white/30')} group-hover:text-white`}>
             COLLEGE NAME:
           </label>
@@ -291,10 +319,10 @@ const UserSignup: React.FC = () => {
           </div>
         </div>
 
-        {/* Specified College Input - Updated Alignment shifted left for nested look */}
+        {/* Specified College Input (Conditional) - Re-aligned to full width label */}
         {formData.college === 'Others' && (
-          <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8 animate-fade-in">
-            <label className={`md:w-[38%] md:pl-10 text-base md:text-xl font-anton tracking-[0.08em] uppercase transition-all opacity-80 ${shouldShowFieldLevelError('otherCollege') ? 'text-red-500' : (formData.otherCollege ? 'text-fuchsia-400' : 'text-white/20')}`}>
+          <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8 animate-fade-in-up">
+            <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${shouldShowFieldLevelError('otherCollege') ? 'text-red-500' : (formData.otherCollege ? 'text-white' : 'text-white/30')} group-hover:text-white`}>
               PLEASE SPECIFY:
             </label>
             <div className={`flex-1 ${shakeFields.otherCollege ? 'animate-shake' : ''}`}>
@@ -314,7 +342,7 @@ const UserSignup: React.FC = () => {
 
         {/* Registration ID for AUS (Conditional) */}
         {isAus && (
-          <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8 animate-fade-in">
+          <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8 animate-fade-in-up">
             <label className={`md:w-[42%] text-base md:text-xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${hasSubmittedOnce && !isFieldValid('regId') ? 'text-red-500' : (regIdDigits.some(d => d) ? 'text-fuchsia-500 drop-shadow-[0_0_8px_rgba(217,70,239,0.6)]' : 'text-white/30')}`}>
               REGISTRATION ID [ONLY FOR AUS STUDENTS]:
             </label>
@@ -352,7 +380,7 @@ const UserSignup: React.FC = () => {
         )}
 
         {/* Submit Section */}
-        <div className="mt-8 md:mt-12 flex justify-center pb-20">
+        <div className="mt-8 md:mt-12 flex justify-center pb-20 animate-stagger-up" style={{ animationDelay: '700ms' }}>
           <button 
             type="submit"
             onMouseEnter={() => { setIsSubmitHovered(true); setIsSubmitGlitching(true); }}
@@ -375,9 +403,15 @@ const UserSignup: React.FC = () => {
         @keyframes glitch-shadow-custom { 0% { text-shadow: 2px 0 #ff00ff, -2px 0 #00ffff; transform: translate(0); } 50% { text-shadow: -2px 0 #ff00ff, 2px 0 #00ffff; transform: translate(-1.5px, 0.5px); } 100% { text-shadow: 0 0 #ff00ff, 0 0 #00ffff; transform: translate(0); } }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
         .animate-shake { animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both; }
+        
         @keyframes fade-in-header { from { opacity: 0; transform: scale(0.98) translateY(-10px); filter: blur(5px); } to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); } }
         .animate-fade-in-header { animation: fade-in-header 1s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
-        .animate-fade-in-up { animation: fade-in-header 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards; animation-delay: 150ms; }
+        
+        @keyframes stagger-up { from { opacity: 0; transform: translateY(20px); filter: blur(4px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
+        .animate-stagger-up { animation: stagger-up 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards; opacity: 0; }
+        
+        @keyframes fade-in-up { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
       `}</style>
     </div>
   );
