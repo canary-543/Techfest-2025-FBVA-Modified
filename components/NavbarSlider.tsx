@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 
 const SECTIONS = ['HOME', 'GALLERY', 'MODULES', 'EVENTS', 'TEAM'];
@@ -22,6 +21,8 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({ onSelect, initialSection = 
   const prevPhaseRef = useRef(registrationPhase);
 
   const isExpandedRegistration = registrationPhase === 'EXPANDED';
+  // Capture the transition frame immediately to prevent snapping
+  const isTransitioningBack = prevPhaseRef.current === 'EXPANDED' && registrationPhase === 'IDLE';
 
   useEffect(() => {
     const idx = SECTIONS.indexOf(initialSection);
@@ -30,15 +31,17 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({ onSelect, initialSection = 
     }
   }, [initialSection]);
 
-  // Detect when we leave the registration phase to trigger the exit delay logic
+  // Handle the Exit Sequence State
   useEffect(() => {
-    if (prevPhaseRef.current === 'EXPANDED' && registrationPhase === 'IDLE') {
+    if (isTransitioningBack) {
       setIsExiting(true);
-      const timer = setTimeout(() => setIsExiting(false), 1200); // Duration of the full out-sequence
+      const timer = setTimeout(() => {
+        setIsExiting(false);
+      }, 1000); // Match the 1s shortening duration
       return () => clearTimeout(timer);
     }
     prevPhaseRef.current = registrationPhase;
-  }, [registrationPhase]);
+  }, [registrationPhase, isTransitioningBack]);
 
   useEffect(() => {
     startStickyTimer();
@@ -79,7 +82,7 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({ onSelect, initialSection = 
   };
 
   const handleClick = (index: number) => {
-    if (isExpandedRegistration || index === activeIndex) return;
+    if (isExpandedRegistration || isExiting || index === activeIndex) return;
     setActiveIndex(index);
     notifyChange(index);
     refreshExpansion();
@@ -91,20 +94,20 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({ onSelect, initialSection = 
   };
 
   const handleMouseEnter = () => {
-    if (isExpandedRegistration) return;
+    if (isExpandedRegistration || isExiting) return;
     setHovering(true);
     refreshExpansion();
   };
 
   const handleMouseLeave = () => {
-    if (isExpandedRegistration) return;
+    if (isExpandedRegistration || isExiting) return;
     setHovering(false);
     setIsDragging(false);
     startStickyTimer();
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (isExpandedRegistration || !isDragging || !trackRef.current) return;
+    if (isExpandedRegistration || isExiting || !isDragging || !trackRef.current) return;
     const rect = trackRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
@@ -121,6 +124,12 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({ onSelect, initialSection = 
   };
 
   const isActive = hovering || isDragging || isSticky || isExpandedRegistration;
+  const isNavLabelActive = isActive || isExiting;
+
+  // Determine active duration to ensure no instant jumps
+  const activeDurationClass = isExpandedRegistration 
+    ? 'duration-1000' 
+    : (isExiting || isTransitioningBack ? 'duration-[1000ms]' : 'duration-300');
 
   return (
     <div className={`relative flex flex-col items-center pointer-events-auto transition-all duration-300 w-auto`}>
@@ -131,11 +140,12 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({ onSelect, initialSection = 
                 h-12 rounded-full border border-fuchsia-500/20 bg-[#080808] relative flex items-center 
                 shadow-[0_0_25px_rgba(217,70,239,0.08)] group
                 hover:border-fuchsia-500/40 cursor-pointer select-none w-[380px] md:w-[550px]
-                transition-all ${isExpandedRegistration ? 'duration-1000 border-fuchsia-500/50 shadow-[0_0_50px_rgba(217,70,239,0.3)]' : (isExiting ? 'duration-[600ms] delay-[600ms]' : 'duration-300')}
+                transition-all ${activeDurationClass}
+                ${isExpandedRegistration ? 'border-fuchsia-500/50 shadow-[0_0_50px_rgba(217,70,239,0.3)]' : ''}
             `}
             onMouseMove={handleMouseMove}
             onMouseDown={(e) => { 
-                if (isExpandedRegistration) return;
+                if (isExpandedRegistration || isExiting) return;
                 e.preventDefault(); 
                 setIsDragging(true); 
                 refreshExpansion(); 
@@ -145,7 +155,7 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({ onSelect, initialSection = 
             onMouseEnter={handleMouseEnter}
         >
             {/* SNAP DOTS */}
-            <div className={`absolute inset-0 flex justify-between px-[10%] items-center pointer-events-none transition-all ${isExpandedRegistration ? 'opacity-0 duration-300 delay-0' : 'opacity-100 duration-300 delay-[1000ms]'}`}>
+            <div className={`absolute inset-0 flex justify-between px-[10%] items-center pointer-events-none transition-all ${isExpandedRegistration ? 'opacity-0 duration-300' : 'opacity-100 duration-300 delay-[500ms]'}`}>
                 {SECTIONS.map((_, i) => (
                     <div 
                         key={i} 
@@ -155,7 +165,7 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({ onSelect, initialSection = 
             </div>
 
             {/* Clickable Zones */}
-            {!isExpandedRegistration && SECTIONS.map((_, i) => (
+            {!isExpandedRegistration && !isExiting && SECTIONS.map((_, i) => (
                 <div 
                     key={i} 
                     className="flex-1 h-full z-10" 
@@ -163,45 +173,43 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({ onSelect, initialSection = 
                 ></div>
             ))}
 
-            {/* Neon Pill - Reversible Delays for Smooth Sequencing */}
+            {/* Neon Pill - Physical Shortening (1000ms duration, no delay) */}
             <div 
                 className={`absolute h-full flex items-center justify-center z-20 pointer-events-none transition-all 
-                  ${isExpandedRegistration 
-                    ? 'duration-[1000ms] delay-0 cubic-bezier(0.65, 0, 0.35, 1)' 
-                    : (isExiting ? 'duration-[500ms] delay-[600ms] ease-out' : 'duration-[400ms] delay-0 ease-out')}`}
+                  ${activeDurationClass} cubic-bezier(0.65, 0, 0.35, 1)`}
                 style={getPillPositionStyle()}
             >
                 <div className={`
                     bg-fuchsia-500 rounded-full flex items-center justify-center relative overflow-hidden
-                    shadow-[0_0_15px_rgba(217,70,239,0.6)] transition-all
+                    shadow-[0_0_15px_rgba(217,70,239,0.6)] transition-all ${activeDurationClass}
                     ${isExpandedRegistration 
-                      ? 'w-full h-[80%] duration-[1000ms] delay-0 cubic-bezier(0.65, 0, 0.35, 1)' 
-                      : (isExiting 
-                          ? 'w-[92%] h-[80%] duration-[500ms] delay-[600ms] ease-out' 
-                          : (isActive ? 'w-[92%] h-[80%] shadow-[0_0_25px_rgba(217,70,239,0.9)] duration-[400ms] delay-0' : 'w-4 h-4 shadow-[0_0_10px_rgba(217,70,239,0.4)] duration-[400ms] delay-0'))}
+                      ? 'w-full h-[80%]' 
+                      : (isNavLabelActive ? 'w-[92%] h-[80%] shadow-[0_0_25px_rgba(217,70,239,0.9)]' : 'w-4 h-4 shadow-[0_0_10px_rgba(217,70,239,0.4)]')}
                 `}>
-                    <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite] transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-0'}`}></div>
+                    <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite] transition-opacity duration-300 ${isNavLabelActive ? 'opacity-100' : 'opacity-0'}`}></div>
                     
                     {/* Cinematic Text Container */}
                     <div className="relative h-full w-full flex items-center justify-center overflow-hidden">
-                      {/* Standard Navigation Label */}
+                      {/* Standard Navigation Label - Appears precisely when shortening finishes (1s) */}
                       <span className={`
                           absolute font-anton tracking-[0.05em] text-white uppercase 
                           drop-shadow-[0_0_3px_rgba(0,0,0,0.3)] leading-none transition-all
-                          text-sm md:text-lg duration-300
-                          ${!isExpandedRegistration && isActive ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-50 translate-y-4'}
+                          text-sm md:text-lg
+                          ${!isExpandedRegistration && isNavLabelActive 
+                            ? `opacity-100 scale-100 translate-y-0 duration-300 ${isExiting ? 'delay-1000' : 'delay-0'}` 
+                            : 'opacity-0 scale-50 translate-y-4 duration-300'}
                       `}>
                           {SECTIONS[activeIndex]}
                       </span>
 
-                      {/* User Registration Label */}
+                      {/* User Registration Label - Slides up and out on exit */}
                       <span className={`
                           absolute font-anton tracking-[0.05em] text-white uppercase 
                           drop-shadow-[0_0_3px_rgba(0,0,0,0.3)] leading-none transition-all
                           text-sm md:text-lg
                           ${isExpandedRegistration 
-                              ? 'opacity-100 translate-y-0 duration-[600ms] delay-[1000ms] ease-out' 
-                              : 'opacity-0 -translate-y-12 duration-[600ms] delay-0 ease-in'}
+                              ? 'opacity-100 translate-y-0 duration-700 delay-500 ease-out' 
+                              : 'opacity-0 -translate-y-12 duration-500 delay-0 ease-in'}
                       `}>
                           USER REGISTRATION
                       </span>
