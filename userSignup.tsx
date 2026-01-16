@@ -9,7 +9,11 @@ const COLLEGES = [
   "Others"
 ];
 
-const UserSignup: React.FC = () => {
+interface UserSignupProps {
+  onSuccess?: (userData: { username: string, firstName: string, lastName: string }) => void;
+}
+
+const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
   const [formData, setFormData] = useState({
     username: '',
     firstName: '',
@@ -157,6 +161,15 @@ const UserSignup: React.FC = () => {
       setTimeout(() => {
         setSubmissionPhase('SUCCESS');
         console.log('✅ [LOG] User Created Successfully');
+        
+        // Notify parent application
+        if (onSuccess) {
+          onSuccess({
+            username: formData.username,
+            firstName: formData.firstName,
+            lastName: formData.lastName
+          });
+        }
         
         // Auto-close notification after 4 seconds of Success state
         setTimeout(() => {
@@ -428,7 +441,7 @@ const UserSignup: React.FC = () => {
               {regIdDigits.map((digit, idx) => {
                 const isFocused = focusedRegIdIdx === idx;
                 const hasValue = !!digit;
-                const isBlockInError = hasSubmittedOnce && !isFieldValid('regId') && !hasValue && !isFocused;
+                const isBlockInError = hasSubmittedOnce && !isFieldValid('phone') && !hasValue && !isFocused;
 
                 return (
                   <div key={idx} className="relative w-full h-full">

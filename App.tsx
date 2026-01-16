@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import Terminal from './components/Terminal';
 import Countdown from './components/Countdown';
@@ -53,6 +54,7 @@ function App() {
 
   // Registration Sequence State
   const [registrationPhase, setRegistrationPhase] = useState<'IDLE' | 'EXPANDED'>('IDLE');
+  const [registeredUser, setRegisteredUser] = useState<{username: string, firstName: string, lastName: string} | null>(null);
 
   // Easter Egg & Persistence Logic
   const [isTerminalUnlocked, setIsTerminalUnlocked] = useState(false);
@@ -98,6 +100,14 @@ function App() {
 
   const handleRegisterClick = () => {
     setRegistrationPhase('EXPANDED');
+  };
+
+  const handleRegistrationSuccess = (userData: {username: string, firstName: string, lastName: string}) => {
+    setRegisteredUser(userData);
+    // After a delay to allow the user to see the success toast in UserSignup, return to main view
+    setTimeout(() => {
+      setRegistrationPhase('IDLE');
+    }, 2500);
   };
 
   const handleHomeBack = () => {
@@ -278,7 +288,7 @@ function App() {
           >
              <nav onClick={(e) => e.stopPropagation()} className="flex flex-col items-center gap-10 md:gap-14">
                 <div className={`transition-all duration-700 ${isMobileMenuOpen ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-90'}`} style={{ transitionDelay: '50ms' }}>
-                   <RegisterButton onClick={handleRegisterClick} size="lg" className="mb-10" isRegistered={registrationPhase === 'EXPANDED'} />
+                   <RegisterButton onClick={handleRegisterClick} size="lg" className="mb-10" isRegistered={registrationPhase === 'EXPANDED'} registeredUser={registeredUser} />
                 </div>
                 {SECTIONS.map((section, idx) => (
                     <button key={section} onClick={() => handleSectionSelect(section)} className={`text-4xl md:text-7xl font-anton tracking-widest transition-all duration-500 hover:scale-110 active:scale-95 ${currentSection === section ? 'text-fuchsia-500 drop-shadow-[0_0_20px_rgba(217,70,239,0.6)]' : 'text-white/60 hover:text-white'}`} style={{ transitionDelay: isMobileMenuOpen ? `${(idx + 2) * 100}ms` : '0ms' }}>
@@ -306,6 +316,7 @@ function App() {
                     onClick={handleRegisterClick} 
                     size="sm" 
                     isRegistered={registrationPhase === 'EXPANDED'} 
+                    registeredUser={registeredUser}
                   />
                 </div>
                 <button onClick={toggleMobileMenu} className="lg:hidden w-14 h-14 flex flex-col items-center justify-center gap-1.5 focus:outline-none hover:bg-white/5 rounded-full transition-all active:scale-90 relative z-[3500]" aria-label="Toggle Menu">
@@ -318,7 +329,7 @@ function App() {
 
           <div className="flex-1 w-full relative overflow-hidden mt-20 md:mt-24">
             {registrationPhase === 'EXPANDED' ? (
-              <UserSignup />
+              <UserSignup onSuccess={handleRegistrationSuccess} />
             ) : (
               <div className="flex w-full h-full transition-transform duration-[800ms] ease-[cubic-bezier(0.19,1,0.22,1)]" style={{ transform: `translateX(-${activeSectionIndex * 100}vw)` }}>
                 <SectionView title="HOME"><Home onBack={handleHomeBack} onSectionChange={handleSectionSelect} initialSection={currentSection} hideNavbar={true} /></SectionView>
