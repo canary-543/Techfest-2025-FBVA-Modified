@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import Terminal from './components/Terminal';
 import Countdown from './components/Countdown';
@@ -15,6 +14,7 @@ import Gallery from './components/Gallery';
 import Modules from './components/Modules';
 import Events from './components/Events';
 import Team from './components/Team';
+import UserSignup from './userSignup';
 
 // Generic View for Sub-Sections
 const SectionView: React.FC<{ title: string; children?: React.ReactNode }> = ({ title, children }) => (
@@ -288,7 +288,7 @@ function App() {
              </nav>
           </div>
 
-          <header className="fixed top-0 left-0 w-full h-20 md:h-24 flex items-center justify-between px-4 md:px-12 z-[3000] bg-black/40 backdrop-blur-3xl border-b border-fuchsia-500/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)] transition-all duration-500 pointer-events-auto">
+          <header className="fixed top-0 left-0 w-full h-20 md:h-24 flex items-center justify-between px-4 md:px-12 z-[3000] bg-black/60 backdrop-blur-xl backdrop-saturate-[1.8] border-b border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-500 pointer-events-auto">
             <div className="flex items-center gap-3 md:gap-5 group select-none shrink-0 cursor-pointer transition-transform hover:scale-[0.98]" onClick={handleHomeBack}>
               <div className="w-8 h-8 md:w-12 md:h-12 bg-[#1e1e1e] border border-gray-700 rounded-md flex items-center justify-center shadow-[0_0_15px_rgba(217,70,239,0.25)] group-hover:border-fuchsia-500 transition-all duration-300">
                 <span className="text-fuchsia-500 font-bold text-lg md:text-2xl font-mono flex pointer-events-none"><span>&gt;</span><span>_</span></span>
@@ -318,9 +318,7 @@ function App() {
 
           <div className="flex-1 w-full relative overflow-hidden mt-20 md:mt-24">
             {registrationPhase === 'EXPANDED' ? (
-              <div className="w-full h-full bg-black flex items-center justify-center animate-fade-in relative z-10">
-                {/* Site remains blank content-wise */}
-              </div>
+              <UserSignup />
             ) : (
               <div className="flex w-full h-full transition-transform duration-[800ms] ease-[cubic-bezier(0.19,1,0.22,1)]" style={{ transform: `translateX(-${activeSectionIndex * 100}vw)` }}>
                 <SectionView title="HOME"><Home onBack={handleHomeBack} onSectionChange={handleSectionSelect} initialSection={currentSection} hideNavbar={true} /></SectionView>
