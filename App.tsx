@@ -51,6 +51,9 @@ function App() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [bgBurst, setBgBurst] = useState(0);
 
+  // Registration Sequence State
+  const [registrationPhase, setRegistrationPhase] = useState<'IDLE' | 'EXPANDED'>('IDLE');
+
   // Easter Egg & Persistence Logic
   const [isTerminalUnlocked, setIsTerminalUnlocked] = useState(false);
   const [easterEggTarget, setEasterEggTarget] = useState(3);
@@ -93,7 +96,15 @@ function App() {
     }, 6500);
   };
 
+  const handleRegisterClick = () => {
+    setRegistrationPhase('EXPANDED');
+  };
+
   const handleHomeBack = () => {
+      if (registrationPhase === 'EXPANDED') {
+          setRegistrationPhase('IDLE');
+          return;
+      }
       setIsTransitioning(true);
       setTimeout(() => {
           setShowMainLayout(false);
@@ -190,7 +201,6 @@ function App() {
         ${!showMain ? 'opacity-0' : ''} 
         ${isTransitioning ? 'blur-[50px] scale-[0.8]' : 'blur-0 scale-100'}
       `}>
-        {/* Terminal elevated above everything in the landing page view */}
         {showTerminal && (
           <div className="fixed inset-0 flex items-center justify-center z-[5000] pointer-events-none">
             <div className="pointer-events-auto">
@@ -268,7 +278,7 @@ function App() {
           >
              <nav onClick={(e) => e.stopPropagation()} className="flex flex-col items-center gap-10 md:gap-14">
                 <div className={`transition-all duration-700 ${isMobileMenuOpen ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-90'}`} style={{ transitionDelay: '50ms' }}>
-                   <RegisterButton size="lg" className="mb-10" />
+                   <RegisterButton onClick={handleRegisterClick} size="lg" className="mb-10" isRegistered={registrationPhase === 'EXPANDED'} />
                 </div>
                 {SECTIONS.map((section, idx) => (
                     <button key={section} onClick={() => handleSectionSelect(section)} className={`text-4xl md:text-7xl font-anton tracking-widest transition-all duration-500 hover:scale-110 active:scale-95 ${currentSection === section ? 'text-fuchsia-500 drop-shadow-[0_0_20px_rgba(217,70,239,0.6)]' : 'text-white/60 hover:text-white'}`} style={{ transitionDelay: isMobileMenuOpen ? `${(idx + 2) * 100}ms` : '0ms' }}>
@@ -278,18 +288,26 @@ function App() {
              </nav>
           </div>
 
-          <header className="fixed top-0 left-0 w-full h-20 md:h-24 flex items-center justify-between px-4 md:px-12 z-[3000] bg-black/40 backdrop-blur-3xl border-b border-fuchsia-500/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)] pointer-events-auto">
+          <header className="fixed top-0 left-0 w-full h-20 md:h-24 flex items-center justify-between px-4 md:px-12 z-[3000] bg-black/40 backdrop-blur-3xl border-b border-fuchsia-500/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)] transition-all duration-500 pointer-events-auto">
             <div className="flex items-center gap-3 md:gap-5 group select-none shrink-0 cursor-pointer transition-transform hover:scale-[0.98]" onClick={handleHomeBack}>
               <div className="w-8 h-8 md:w-12 md:h-12 bg-[#1e1e1e] border border-gray-700 rounded-md flex items-center justify-center shadow-[0_0_15px_rgba(217,70,239,0.25)] group-hover:border-fuchsia-500 transition-all duration-300">
                 <span className="text-fuchsia-500 font-bold text-lg md:text-2xl font-mono flex pointer-events-none"><span>&gt;</span><span>_</span></span>
               </div>
               <span className="text-lg md:text-3xl font-anton tracking-[0.08em] text-white group-hover:text-fuchsia-400 transition-colors uppercase">YANTRAKSH</span>
             </div>
+            
             <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2">
-              <NavbarSlider initialSection={currentSection} onSelect={handleSectionSelect} />
+              <NavbarSlider initialSection={currentSection} onSelect={handleSectionSelect} registrationPhase={registrationPhase} />
             </div>
+
             <div className="flex items-center gap-2 md:gap-6 shrink-0 relative z-[3100]">
-                <div className="hidden lg:block transition-transform"><RegisterButton size="sm" /></div>
+                <div className="hidden lg:block transition-transform">
+                  <RegisterButton 
+                    onClick={handleRegisterClick} 
+                    size="sm" 
+                    isRegistered={registrationPhase === 'EXPANDED'} 
+                  />
+                </div>
                 <button onClick={toggleMobileMenu} className="lg:hidden w-14 h-14 flex flex-col items-center justify-center gap-1.5 focus:outline-none hover:bg-white/5 rounded-full transition-all active:scale-90 relative z-[3500]" aria-label="Toggle Menu">
                     <div className={`w-7 h-1 bg-white rounded-full transition-all duration-300 transform ${isMobileMenuOpen ? 'rotate-45 translate-y-2.5' : ''}`}></div>
                     <div className={`w-7 h-1 bg-white rounded-full transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0 scale-x-0' : ''}`}></div>
@@ -299,13 +317,19 @@ function App() {
           </header>
 
           <div className="flex-1 w-full relative overflow-hidden mt-20 md:mt-24">
-            <div className="flex w-full h-full transition-transform duration-[800ms] ease-[cubic-bezier(0.19,1,0.22,1)]" style={{ transform: `translateX(-${activeSectionIndex * 100}vw)` }}>
-              <SectionView title="HOME"><Home onBack={handleHomeBack} onSectionChange={handleSectionSelect} initialSection={currentSection} hideNavbar={true} /></SectionView>
-              <SectionView title="GALLERY"><Gallery /></SectionView>
-              <SectionView title="MODULES"><Modules /></SectionView>
-              <SectionView title="EVENTS"><Events /></SectionView>
-              <SectionView title="TEAM"><Team /></SectionView>
-            </div>
+            {registrationPhase === 'EXPANDED' ? (
+              <div className="w-full h-full bg-black flex items-center justify-center animate-fade-in relative z-10">
+                {/* Site remains blank content-wise */}
+              </div>
+            ) : (
+              <div className="flex w-full h-full transition-transform duration-[800ms] ease-[cubic-bezier(0.19,1,0.22,1)]" style={{ transform: `translateX(-${activeSectionIndex * 100}vw)` }}>
+                <SectionView title="HOME"><Home onBack={handleHomeBack} onSectionChange={handleSectionSelect} initialSection={currentSection} hideNavbar={true} /></SectionView>
+                <SectionView title="GALLERY"><Gallery /></SectionView>
+                <SectionView title="MODULES"><Modules /></SectionView>
+                <SectionView title="EVENTS"><Events /></SectionView>
+                <SectionView title="TEAM"><Team /></SectionView>
+              </div>
+            )}
           </div>
         </div>
       )}

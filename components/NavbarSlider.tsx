@@ -6,9 +6,10 @@ const SECTIONS = ['HOME', 'GALLERY', 'MODULES', 'EVENTS', 'TEAM'];
 interface NavbarSliderProps {
   onSelect?: (section: string) => void;
   initialSection?: string;
+  registrationPhase?: 'IDLE' | 'EXPANDED';
 }
 
-const NavbarSlider: React.FC<NavbarSliderProps> = ({ onSelect, initialSection = 'HOME' }) => {
+const NavbarSlider: React.FC<NavbarSliderProps> = ({ onSelect, initialSection = 'HOME', registrationPhase = 'IDLE' }) => {
   const initialIndex = SECTIONS.indexOf(initialSection);
   const [activeIndex, setActiveIndex] = useState(initialIndex >= 0 ? initialIndex : 0);
   const [hovering, setHovering] = useState(false);
@@ -17,7 +18,8 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({ onSelect, initialSection = 
   const trackRef = useRef<HTMLDivElement>(null);
   const stickyTimerRef = useRef<number | null>(null);
 
-  // Sync state if initialSection changes from parent (e.g. clicking Logo)
+  const isExpandedRegistration = registrationPhase === 'EXPANDED';
+
   useEffect(() => {
     const idx = SECTIONS.indexOf(initialSection);
     if (idx >= 0 && idx !== activeIndex) {
@@ -32,8 +34,20 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({ onSelect, initialSection = 
     };
   }, []);
 
-  const getPillPosition = () => {
-    return (activeIndex * 20);
+  const getPillPositionStyle = (): React.CSSProperties => {
+    if (isExpandedRegistration) {
+      // Symmetrically covers the track with a small professional padding
+      return {
+        left: '1%',
+        width: '98%',
+        transform: 'none'
+      };
+    }
+    // Standard section position (20% width per section)
+    return {
+      left: `${activeIndex * 20}%`,
+      width: '20%',
+    };
   };
 
   const startStickyTimer = () => {
@@ -48,14 +62,13 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({ onSelect, initialSection = 
     if (onSelect) {
       onSelect(SECTIONS[index]);
     }
-    // High-tech feedback sound
     const audio = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_730b227c1d.mp3');
     audio.volume = 0.1;
     audio.play().catch(() => {});
   };
 
   const handleClick = (index: number) => {
-    if (index === activeIndex) return;
+    if (isExpandedRegistration || index === activeIndex) return;
     setActiveIndex(index);
     notifyChange(index);
     refreshExpansion();
@@ -67,24 +80,25 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({ onSelect, initialSection = 
   };
 
   const handleMouseEnter = () => {
+    if (isExpandedRegistration) return;
     setHovering(true);
     refreshExpansion();
   };
 
   const handleMouseLeave = () => {
+    if (isExpandedRegistration) return;
     setHovering(false);
     setIsDragging(false);
     startStickyTimer();
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !trackRef.current) return;
+    if (isExpandedRegistration || !isDragging || !trackRef.current) return;
     const rect = trackRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
     const index = Math.floor(percentage / 20);
     
-    // NEW: Real-time update during drag
     if (index !== activeIndex && index >= 0 && index < SECTIONS.length) {
         setActiveIndex(index);
         notifyChange(index);
@@ -95,20 +109,22 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({ onSelect, initialSection = 
     setIsDragging(false);
   };
 
-  const isActive = hovering || isDragging || isSticky;
+  const isActive = hovering || isDragging || isSticky || isExpandedRegistration;
 
   return (
-    <div className="relative flex flex-col items-center pointer-events-auto">
+    <div className={`relative flex flex-col items-center pointer-events-auto transition-all duration-1000 w-auto`}>
         {/* The Slider Track */}
         <div 
             ref={trackRef}
             className={`
-                w-[380px] md:w-[550px] h-12 rounded-full border border-fuchsia-500/20 bg-[#080808] relative flex items-center 
-                shadow-[0_0_25px_rgba(217,70,239,0.08)] transition-all duration-500 group
-                hover:border-fuchsia-500/40 cursor-pointer select-none
+                h-12 rounded-full border border-fuchsia-500/20 bg-[#080808] relative flex items-center 
+                shadow-[0_0_25px_rgba(217,70,239,0.08)] transition-all duration-1000 group
+                hover:border-fuchsia-500/40 cursor-pointer select-none w-[380px] md:w-[550px]
+                ${isExpandedRegistration ? 'border-fuchsia-500/50 shadow-[0_0_50px_rgba(217,70,239,0.3)]' : ''}
             `}
             onMouseMove={handleMouseMove}
             onMouseDown={(e) => { 
+                if (isExpandedRegistration) return;
                 e.preventDefault(); 
                 setIsDragging(true); 
                 refreshExpansion(); 
@@ -118,17 +134,19 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({ onSelect, initialSection = 
             onMouseEnter={handleMouseEnter}
         >
             {/* SNAP DOTS */}
-            <div className="absolute inset-0 flex justify-between px-[10%] items-center pointer-events-none">
-                {SECTIONS.map((_, i) => (
-                    <div 
-                        key={i} 
-                        className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${i === activeIndex ? 'bg-fuchsia-500 shadow-[0_0_8px_#d946ef] scale-125' : 'bg-fuchsia-500/20'}`}
-                    ></div>
-                ))}
-            </div>
+            {!isExpandedRegistration && (
+              <div className="absolute inset-0 flex justify-between px-[10%] items-center pointer-events-none transition-opacity duration-500">
+                  {SECTIONS.map((_, i) => (
+                      <div 
+                          key={i} 
+                          className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${i === activeIndex ? 'bg-fuchsia-500 shadow-[0_0_8px_#d946ef] scale-125' : 'bg-fuchsia-500/20'}`}
+                      ></div>
+                  ))}
+              </div>
+            )}
 
             {/* Clickable Zones */}
-            {SECTIONS.map((_, i) => (
+            {!isExpandedRegistration && SECTIONS.map((_, i) => (
                 <div 
                     key={i} 
                     className="flex-1 h-full z-10" 
@@ -138,24 +156,22 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({ onSelect, initialSection = 
 
             {/* Neon Pill */}
             <div 
-                className="absolute h-full w-[20%] transition-all duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] flex items-center justify-center z-20 pointer-events-none"
-                style={{ left: `${getPillPosition()}%` }}
+                className="absolute h-full flex items-center justify-center z-20 pointer-events-none transition-all duration-[1000ms] cubic-bezier(0.65, 0, 0.35, 1)"
+                style={getPillPositionStyle()}
             >
                 <div className={`
                     bg-fuchsia-500 rounded-full flex items-center justify-center relative overflow-hidden
-                    shadow-[0_0_15px_rgba(217,70,239,0.6)] transition-all duration-500 cubic-bezier(0.175, 0.885, 0.32, 1.275)
-                    ${isActive 
-                        ? 'w-[92%] h-[80%] shadow-[0_0_25px_rgba(217,70,239,0.9)]' 
-                        : 'w-4 h-4 shadow-[0_0_10px_rgba(217,70,239,0.4)]'}
+                    shadow-[0_0_15px_rgba(217,70,239,0.6)] transition-all duration-[1000ms] cubic-bezier(0.65, 0, 0.35, 1)
+                    ${isExpandedRegistration ? 'w-full h-[80%]' : (isActive ? 'w-[92%] h-[80%] shadow-[0_0_25px_rgba(217,70,239,0.9)]' : 'w-4 h-4 shadow-[0_0_10px_rgba(217,70,239,0.4)]')}
                 `}>
                     <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite] transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-0'}`}></div>
                     
                     <span className={`
-                        text-sm md:text-lg font-anton tracking-[0.05em] text-white uppercase 
-                        transition-all duration-500 drop-shadow-[0_0_3px_rgba(0,0,0,0.3)] leading-none
-                        ${isActive ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}
+                        font-anton tracking-[0.05em] text-white uppercase 
+                        transition-all duration-[1000ms] cubic-bezier(0.65, 0, 0.35, 1) drop-shadow-[0_0_3px_rgba(0,0,0,0.3)] leading-none
+                        ${isExpandedRegistration ? 'text-xl md:text-2xl opacity-100 scale-100' : (isActive ? 'text-sm md:text-lg opacity-100 scale-100' : 'opacity-0 scale-50')}
                     `}>
-                        {SECTIONS[activeIndex]}
+                        {isExpandedRegistration ? 'USER REGISTRATION' : SECTIONS[activeIndex]}
                     </span>
                 </div>
             </div>
