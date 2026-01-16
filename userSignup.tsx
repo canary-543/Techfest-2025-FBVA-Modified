@@ -23,6 +23,9 @@ const UserSignup: React.FC = () => {
   const [hasSubmittedOnce, setHasSubmittedOnce] = useState(false);
   const [shakeFields, setShakeFields] = useState<Record<string, boolean>>({});
   
+  // Submission Status Logic
+  const [submissionPhase, setSubmissionPhase] = useState<'IDLE' | 'PROCESSING' | 'SUCCESS'>('IDLE');
+  
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSubmitHovered, setIsSubmitHovered] = useState(false);
   const [isSubmitGlitching, setIsSubmitGlitching] = useState(false);
@@ -52,7 +55,7 @@ const UserSignup: React.FC = () => {
 
   const isFieldValid = (name: string): boolean => {
     if (name === 'middleName') return true;
-    if (name === 'username') return formData.username.length >= 9; // Min 9 characters
+    if (name === 'username') return formData.username.length >= 9;
     if (name === 'firstName') return !!formData.firstName;
     if (name === 'lastName') return !!formData.lastName;
     if (name === 'college') return !!formData.college;
@@ -64,7 +67,6 @@ const UserSignup: React.FC = () => {
 
   const shouldShowFieldLevelError = (name: string): boolean => {
     if (!hasSubmittedOnce) return false;
-    // Hide red only while actively focused/editing
     if (focusedField === name) return false;
     return !isFieldValid(name);
   };
@@ -116,6 +118,10 @@ const UserSignup: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent multiple submissions while one is in progress
+    if (submissionPhase !== 'IDLE') return;
+
     setHasSubmittedOnce(true);
 
     const fieldsToValidate = ['username', 'firstName', 'lastName', 'college', 'phone'];
@@ -136,7 +142,27 @@ const UserSignup: React.FC = () => {
       setShakeFields(newShakes);
       setTimeout(() => setShakeFields({}), 1000);
     } else {
-      console.log('Registration Success:', { ...formData, phone: phoneDigits.join(''), regId: regIdDigits.join('') });
+      // LOG DATA TO CONSOLE AS REQUESTED
+      console.log('✅ [LOG] Registration Initiated:', {
+        ...formData,
+        phone: phoneDigits.join(''),
+        regId: regIdDigits.join(''),
+        timestamp: new Date().toISOString()
+      });
+
+      // TRIGGER SUCCESS NOTIFICATION CARD
+      setSubmissionPhase('PROCESSING');
+      
+      // Phase 1 (Processing) lasts 5 seconds
+      setTimeout(() => {
+        setSubmissionPhase('SUCCESS');
+        console.log('✅ [LOG] User Created Successfully');
+        
+        // Auto-close notification after 4 seconds of Success state
+        setTimeout(() => {
+          setSubmissionPhase('IDLE');
+        }, 4000);
+      }, 5000);
     }
   };
 
@@ -164,6 +190,55 @@ const UserSignup: React.FC = () => {
   return (
     <div className="w-full h-full bg-transparent relative flex flex-col items-center pt-8 md:pt-12 px-6 overflow-y-auto custom-scrollbar no-horizontal-scroll pb-32">
       
+      {/* SUCCESS NOTIFICATION TOAST - CRITICAL VISIBILITY FIX */}
+      <div 
+        className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[999999] w-[92%] max-w-md pointer-events-none transition-all duration-1000 cubic-bezier(0.19, 1, 0.22, 1) ${submissionPhase === 'IDLE' ? 'translate-y-40 opacity-0' : 'translate-y-0 opacity-100'}`}
+      >
+        <div className="bg-white rounded-[2rem] p-5 md:p-6 shadow-[0_40px_100px_rgba(0,0,0,0.6)] flex items-center gap-5 overflow-hidden relative border-b-4 border-fuchsia-500 pointer-events-auto">
+          
+          {/* ICON SECTION - PERFECTED CENTERING */}
+          <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
+            {/* Phase 1 Icon: User with Spinner */}
+            <div className={`absolute inset-0 flex items-center justify-center transition-all duration-700 ${submissionPhase === 'PROCESSING' ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}>
+              <div className="absolute inset-0 border-[3px] border-fuchsia-100 rounded-full"></div>
+              <div className="absolute inset-0 border-[3px] border-t-fuchsia-500 rounded-full animate-spin"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <svg className="w-8 h-8 text-fuchsia-600" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                </svg>
+              </div>
+            </div>
+            
+            {/* Phase 2 Icon: Checkmark */}
+            <div className={`absolute inset-0 flex items-center justify-center transition-all duration-700 ${submissionPhase === 'SUCCESS' ? 'scale-100 opacity-100 rotate-0' : 'scale-150 opacity-0 rotate-12'}`}>
+              <div className="w-full h-full bg-black rounded-full flex items-center justify-center">
+                <svg className="w-10 h-10 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* TEXT SECTION - SLIDING ANIMATIONS */}
+          <div className="flex-1 relative h-12 overflow-hidden">
+            {/* Phase 1 Text */}
+            <div className={`absolute inset-0 flex items-center gap-1 transition-all duration-700 ease-in-out ${submissionPhase === 'PROCESSING' ? 'translate-y-0 opacity-100' : '-translate-y-12 opacity-0'}`}>
+              <span className="text-black font-space font-bold text-xl tracking-tight">Creating User</span>
+              <div className="flex gap-1.5 pt-2.5">
+                <span className="w-2 h-2 bg-black rounded-full animate-[blink_1.4s_infinite_100ms]"></span>
+                <span className="w-2 h-2 bg-black rounded-full animate-[blink_1.4s_infinite_300ms]"></span>
+                <span className="w-2 h-2 bg-black rounded-full animate-[blink_1.4s_infinite_500ms]"></span>
+              </div>
+            </div>
+            
+            {/* Phase 2 Text */}
+            <div className={`absolute inset-0 flex items-center transition-all duration-700 ease-in-out ${submissionPhase === 'SUCCESS' ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}`}>
+              <span className="text-black font-space font-bold text-xl tracking-tight">User created successfully!</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="relative z-10 mb-12 md:mb-20 text-center animate-fade-in-header">
         <h2 className="text-5xl md:text-8xl font-anton tracking-[0.05em] text-white uppercase opacity-95 leading-tight">
           USER <span className="text-fuchsia-500 drop-shadow-[0_0_15px_#d946ef]">REGISTRATION</span>
@@ -296,15 +371,18 @@ const UserSignup: React.FC = () => {
               type="button"
               onClick={() => { setIsDropdownOpen(!isDropdownOpen); setFocusedField('college'); }}
               onBlur={() => setFocusedField(null)}
-              className={`w-full h-12 md:h-16 bg-[#0a0a0a] border rounded-xl px-6 text-left flex items-center justify-between transition-all duration-300
-                ${isDropdownOpen ? 'border-fuchsia-500 ring-2 ring-fuchsia-500/20 shadow-none' : (shouldShowFieldLevelError('college') ? 'border-red-500 ring-2 ring-red-500/40 bg-red-500/5' : (formData.college ? 'border-fuchsia-500 shadow-[0_0_15px_rgba(217,70,239,0.3)]' : 'border-white/10'))}
+              className={`w-full h-12 md:h-16 bg-[#0a0a0a] border rounded-xl px-6 text-left flex items-center justify-between transition-all duration-[800ms] cubic-bezier(0.19, 1, 0.22, 1)
+                ${isDropdownOpen ? 'border-fuchsia-500/60 ring-2 ring-fuchsia-500/10 bg-fuchsia-500/[0.03]' : (shouldShowFieldLevelError('college') ? 'border-red-500 ring-2 ring-red-500/40 bg-red-500/5' : (formData.college ? 'border-fuchsia-500 shadow-[0_0_20px_rgba(217,70,239,0.25)]' : 'border-white/10'))}
                 ${formData.college ? 'text-white' : 'text-white/40'}
               `}
             >
               <span className="font-space text-sm md:text-lg uppercase tracking-wider truncate">
                 {formData.college || "SELECT YOUR INSTITUTION"}
               </span>
-              <svg className={`w-5 h-5 text-fuchsia-500 transition-transform duration-500 ${isDropdownOpen ? 'rotate-180 shadow-[0_0_10px_#d946ef]' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" /></svg>
+              
+              <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center border transition-all duration-500 shrink-0 ml-4 ${isDropdownOpen ? 'border-fuchsia-500 bg-fuchsia-500/10 shadow-[0_0_15px_#d946ef]' : 'border-white/10 bg-white/5 group-hover:border-fuchsia-500/40'}`}>
+                <svg className={`w-4 h-4 md:w-5 md:h-5 text-fuchsia-500 transition-transform duration-700 cubic-bezier(0.19, 1, 0.22, 1) ${isDropdownOpen ? 'rotate-180 drop-shadow-[0_0_8px_#d946ef]' : 'rotate-0'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" /></svg>
+              </div>
             </button>
             <div className={`absolute top-full left-0 right-0 mt-2 bg-black/95 backdrop-blur-3xl border border-fuchsia-500/40 rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.9)] overflow-hidden transition-all duration-500 origin-top z-[100] ${isDropdownOpen ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-95 pointer-events-none'}`}>
               <div className="py-2 max-h-[300px] overflow-y-auto custom-scrollbar">
@@ -319,7 +397,7 @@ const UserSignup: React.FC = () => {
           </div>
         </div>
 
-        {/* Specified College Input (Conditional) - Re-aligned to full width label */}
+        {/* Specified College Input (Conditional) */}
         {formData.college === 'Others' && (
           <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8 animate-fade-in-up">
             <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${shouldShowFieldLevelError('otherCollege') ? 'text-red-500' : (formData.otherCollege ? 'text-white' : 'text-white/30')} group-hover:text-white`}>
@@ -385,7 +463,7 @@ const UserSignup: React.FC = () => {
             type="submit"
             onMouseEnter={() => { setIsSubmitHovered(true); setIsSubmitGlitching(true); }}
             onMouseLeave={() => { setIsSubmitHovered(false); setIsSubmitGlitching(false); }}
-            className="group relative outline-none transition-all duration-500 flex flex-col items-center justify-center px-20 py-4 md:px-28 md:py-5 active:scale-95"
+            className={`group relative outline-none transition-all duration-500 flex flex-col items-center justify-center px-20 py-4 md:px-28 md:py-5 active:scale-95 ${submissionPhase !== 'IDLE' ? 'pointer-events-none opacity-50' : ''}`}
           >
             <div className={`absolute inset-0 bg-fuchsia-600/10 blur-[40px] rounded-full transition-opacity duration-700 ${isSubmitHovered ? 'opacity-100' : 'opacity-0'}`}></div>
             <div className="absolute inset-0 bg-[#0c0c0c] border border-fuchsia-500/30 transition-all duration-700 group-hover:border-fuchsia-500 group-hover:scale-[1.02] shadow-[inset_0_0_15px_rgba(217,70,239,0.1)]" style={{ clipPath: 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px)' }}>
@@ -403,15 +481,18 @@ const UserSignup: React.FC = () => {
         @keyframes glitch-shadow-custom { 0% { text-shadow: 2px 0 #ff00ff, -2px 0 #00ffff; transform: translate(0); } 50% { text-shadow: -2px 0 #ff00ff, 2px 0 #00ffff; transform: translate(-1.5px, 0.5px); } 100% { text-shadow: 0 0 #ff00ff, 0 0 #00ffff; transform: translate(0); } }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
         .animate-shake { animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both; }
-        
         @keyframes fade-in-header { from { opacity: 0; transform: scale(0.98) translateY(-10px); filter: blur(5px); } to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); } }
         .animate-fade-in-header { animation: fade-in-header 1s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
-        
         @keyframes stagger-up { from { opacity: 0; transform: translateY(20px); filter: blur(4px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
         .animate-stagger-up { animation: stagger-up 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards; opacity: 0; }
-        
         @keyframes fade-in-up { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
+        
+        /* BLINKING DOTS ANIMATION */
+        @keyframes blink {
+          0%, 100% { opacity: 0.2; transform: scale(0.8); }
+          50% { opacity: 1; transform: scale(1.1); }
+        }
       `}</style>
     </div>
   );
