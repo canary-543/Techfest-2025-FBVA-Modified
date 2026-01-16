@@ -44,7 +44,7 @@ const RegisterButton: React.FC<RegisterButtonProps> = ({
   };
 
   const UserIcon = () => (
-    <svg className="w-4 h-4 md:w-6 md:h-6 text-fuchsia-500 drop-shadow-[0_0_8px_#d946ef]" viewBox="0 0 24 24" fill="currentColor">
+    <svg className="w-5 h-5 md:w-8 md:h-8 text-fuchsia-500 drop-shadow-[0_0_10px_#d946ef]" viewBox="0 0 24 24" fill="currentColor">
       <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
     </svg>
   );
@@ -55,7 +55,7 @@ const RegisterButton: React.FC<RegisterButtonProps> = ({
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
       className={`group relative outline-none transition-all duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] flex items-center justify-center overflow-hidden
-        w-[165px] md:w-[210px] h-[50px] md:h-[62px]
+        w-[160px] md:w-[205px] h-[46px] md:h-[58px]
         ${className}`}
     >
       
@@ -89,27 +89,27 @@ const RegisterButton: React.FC<RegisterButtonProps> = ({
       {/* CONTENT LAYER */}
       {!showProfile ? (
         <div className={`relative z-10 flex flex-col items-center transition-all duration-700 ${isRegistered ? 'opacity-0 scale-90' : 'opacity-100'}`}>
-          <span className={`text-white font-anton tracking-[0.15em] transition-all duration-500 ${isGlitching ? 'animate-[glitch-shadow_0.2s_infinite]' : ''} text-base md:text-lg`}>
+          <span className={`text-white font-anton tracking-[0.12em] transition-all duration-500 ${isGlitching ? 'animate-[glitch-shadow_0.2s_infinite]' : ''} text-xl md:text-2xl`}>
             REGISTER
           </span>
         </div>
       ) : (
-        <div className="relative z-10 flex flex-row items-center gap-2 md:gap-3.5 w-full h-full px-4 md:px-6 justify-start animate-fade-in">
+        <div className="relative z-10 flex flex-row items-center gap-2.5 md:gap-3.5 w-full h-full px-4 md:px-6 justify-start animate-fade-in">
           
-          {/* IMAGE CLONE: Icon on the Left */}
-          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-fuchsia-500/20 flex items-center justify-center bg-fuchsia-500/5 shrink-0">
+          {/* IMAGE CLONE: Increased PFP size on the Left */}
+          <div className="w-9 h-9 md:w-11 md:h-11 rounded-full border border-fuchsia-500/25 flex items-center justify-center bg-fuchsia-500/10 shrink-0 shadow-[0_0_12px_rgba(217,70,239,0.2)]">
             <UserIcon />
           </div>
           
           {/* IMAGE CLONE: Stacked text to the right */}
-          <div className="flex flex-col items-start min-w-0 flex-1 justify-center">
+          <div className="flex flex-col items-start min-w-0 flex-1 justify-center py-1">
             {/* Username Line */}
-            <span className="text-white font-anton text-xs md:text-sm tracking-wide leading-none uppercase drop-shadow-[0_0_10px_rgba(255,255,255,0.3)] whitespace-nowrap overflow-hidden text-ellipsis w-full">
+            <span className="text-white font-anton text-sm md:text-base tracking-wide leading-none uppercase drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] whitespace-nowrap overflow-hidden text-ellipsis w-full">
               {registeredUser.username.startsWith('@') ? registeredUser.username : `@${registeredUser.username}`}
             </span>
             
             {/* Name Line */}
-            <span className="text-gray-400/70 font-space text-[8px] md:text-[9px] tracking-[0.05em] font-bold uppercase whitespace-nowrap overflow-hidden text-ellipsis w-full mt-0.5">
+            <span className="text-gray-400/80 font-space text-[10px] md:text-[11px] tracking-[0.05em] font-bold uppercase whitespace-nowrap overflow-hidden text-ellipsis w-full mt-0.5">
               {registeredUser.firstName} {registeredUser.lastName}
             </span>
           </div>
