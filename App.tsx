@@ -193,10 +193,12 @@ function App() {
   };
 
   const handleRegisterClick = () => {
+    // ALWAYS close mobile menu when clicking register action
+    setIsMobileMenuOpen(false);
+
     if (registeredUser) {
         setIsProfileCardOpen(true);
         setIsProfileClosing(false);
-        setIsMobileMenuOpen(false);
     } else {
         setRegistrationPhase('EXPANDED');
     }
