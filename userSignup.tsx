@@ -1,5 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import { UserData } from './App';
 
 const COLLEGES = [
   "ASSAM UNIVERSITY SILCHAR",
@@ -10,7 +11,7 @@ const COLLEGES = [
 ];
 
 interface UserSignupProps {
-  onSuccess?: (userData: { username: string, firstName: string, lastName: string }) => void;
+  onSuccess?: (userData: UserData) => void;
 }
 
 const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
@@ -146,11 +147,14 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
       setShakeFields(newShakes);
       setTimeout(() => setShakeFields({}), 1000);
     } else {
+      const finalPhone = phoneDigits.join('');
+      const finalRegId = regIdDigits.join('');
+
       // LOG DATA TO CONSOLE AS REQUESTED
       console.log('✅ [LOG] Registration Initiated:', {
         ...formData,
-        phone: phoneDigits.join(''),
-        regId: regIdDigits.join(''),
+        phone: finalPhone,
+        regId: finalRegId,
         timestamp: new Date().toISOString()
       });
 
@@ -162,12 +166,17 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
         setSubmissionPhase('SUCCESS');
         console.log('✅ [LOG] User Created Successfully');
         
-        // Notify parent application
+        // Notify parent application with FULL DATA
         if (onSuccess) {
           onSuccess({
             username: formData.username,
             firstName: formData.firstName,
-            lastName: formData.lastName
+            middleName: formData.middleName,
+            lastName: formData.lastName,
+            college: formData.college,
+            otherCollege: formData.otherCollege,
+            phone: finalPhone,
+            regId: isAus ? finalRegId : undefined
           });
         }
         

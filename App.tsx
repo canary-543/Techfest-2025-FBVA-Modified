@@ -18,9 +18,20 @@ import Team from './components/Team';
 import UserSignup from './userSignup';
 import UserDashboard from './userDashboard';
 
+export interface UserData {
+  username: string;
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  college: string;
+  otherCollege?: string;
+  phone: string;
+  regId?: string;
+}
+
 // --- PROFILE CARD COMPONENT ---
 const ProfileCard: React.FC<{ 
-  user: { username: string, firstName: string, lastName: string }, 
+  user: UserData, 
   isClosing: boolean,
   onClose: () => void,
   onSignOut: () => void,
@@ -155,7 +166,7 @@ function App() {
   const [registrationPhase, setRegistrationPhase] = useState<'IDLE' | 'EXPANDED'>('IDLE');
   const [dashboardPhase, setDashboardPhase] = useState<'IDLE' | 'EXPANDED'>('IDLE');
   
-  const [registeredUser, setRegisteredUser] = useState<{username: string, firstName: string, lastName: string} | null>(null);
+  const [registeredUser, setRegisteredUser] = useState<UserData | null>(null);
   const [isProfileCardOpen, setIsProfileCardOpen] = useState(false);
   const [isProfileClosing, setIsProfileClosing] = useState(false);
 
@@ -243,7 +254,7 @@ function App() {
     setDashboardPhase('EXPANDED');
   };
 
-  const handleRegistrationSuccess = (userData: {username: string, firstName: string, lastName: string}) => {
+  const handleRegistrationSuccess = (userData: UserData) => {
     setRegisteredUser(userData);
     setTimeout(() => {
       setRegistrationPhase('IDLE');
@@ -497,7 +508,14 @@ function App() {
             {registrationPhase === 'EXPANDED' ? (
               <UserSignup onSuccess={handleRegistrationSuccess} />
             ) : dashboardPhase === 'EXPANDED' ? (
-              <UserDashboard />
+              <UserDashboard 
+                user={registeredUser} 
+                onSignOut={handleSignOut}
+                onNavigateToModules={() => {
+                  setDashboardPhase('IDLE');
+                  setCurrentSection('MODULES');
+                }}
+              />
             ) : (
               <div className="flex w-full h-full transition-transform duration-[800ms] ease-[cubic-bezier(0.19,1,0.22,1)]" style={{ transform: `translateX(-${activeSectionIndex * 100}vw)` }}>
                 <SectionView title="HOME"><Home onBack={handleHomeBack} onSectionChange={handleSectionSelect} initialSection={currentSection} hideNavbar={true} /></SectionView>
