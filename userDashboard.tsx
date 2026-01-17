@@ -75,7 +75,8 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onSignOut, onNaviga
 
               <div className="relative w-full h-full flex flex-col items-center p-8 md:p-10 z-10">
                 <div className="mb-6">
-                  <p className="text-fuchsia-500 font-space font-medium text-[10px] md:text-xs tracking-[0.2em] lowercase opacity-80">
+                  {/* UPDATED: Larger username text */}
+                  <p className="text-fuchsia-500 font-space font-bold text-lg md:text-2xl tracking-[0.1em] lowercase opacity-90 drop-shadow-[0_0_10px_rgba(217,70,239,0.4)]">
                     {user.username.toLowerCase()}
                   </p>
                 </div>
@@ -151,14 +152,15 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onSignOut, onNaviga
           </div>
         </div>
 
-        {/* RIGHT COLUMN: EVENTS REGISTERED BOX - UPDATED FOR DYNAMIC LIST */}
+        {/* RIGHT COLUMN: EVENTS REGISTERED BOX */}
         <div className="w-full h-full flex flex-col items-center lg:items-start animate-stagger-up" style={{ animationDelay: '400ms' }}>
           <div 
             className="w-full h-full min-h-[440px] md:h-[680px] bg-[#0c0c0c]/40 border border-white/5 relative overflow-hidden flex flex-col p-8 md:p-12 shadow-2xl rounded-[2.5rem] backdrop-blur-sm"
           >
             <div className="flex items-center justify-between mb-8 border-b border-white/10 pb-10 w-full">
               <div className="flex flex-col">
-                <h4 className="text-base md:text-xl font-anton text-white tracking-[0.05em] uppercase opacity-70">
+                {/* UPDATED: Increased opacity to 100% */}
+                <h4 className="text-base md:text-xl font-anton text-white tracking-[0.05em] uppercase opacity-100">
                   EVENTS REGISTERED <span className="text-fuchsia-500 transition-all duration-500">[{registeredEvents.length}]</span>
                 </h4>
               </div>
@@ -213,9 +215,10 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onSignOut, onNaviga
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
-                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-[9px] font-bold text-green-400 uppercase tracking-widest">SUCCESS</span>
+                    <div className="flex items-center gap-2 px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-full">
+                      <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></div>
+                      {/* UPDATED: Text changed to PENDING APPROVAL and color to yellow */}
+                      <span className="text-[9px] font-bold text-yellow-400 uppercase tracking-widest">PENDING APPROVAL</span>
                     </div>
                   </div>
                 ))}
