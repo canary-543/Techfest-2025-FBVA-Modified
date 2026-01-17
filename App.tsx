@@ -447,7 +447,7 @@ function App() {
       </div>
 
       {showMainLayout && (
-        <div className="fixed inset-0 z-[200] flex flex-col pointer-events-auto">
+        <div className="fixed inset-0 z-[800] flex flex-col pointer-events-auto">
           <div 
             onClick={() => setIsMobileMenuOpen(false)}
             className={`fixed inset-0 z-[2900] bg-[#050505]/95 backdrop-blur-[60px] transition-all duration-700 flex flex-col items-center justify-center ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto scale-100' : 'opacity-0 pointer-events-none scale-110'}`}
