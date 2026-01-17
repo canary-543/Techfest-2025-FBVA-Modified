@@ -27,6 +27,7 @@ export interface UserData {
   otherCollege?: string;
   phone: string;
   regId?: string;
+  registeredEvents?: string[]; // Track events the user has filled forms for
 }
 
 // --- PROFILE CARD COMPONENT ---
@@ -39,13 +40,11 @@ const ProfileCard: React.FC<{
 }> = ({ user, isClosing, onClose, onSignOut, onDashboardClick }) => {
   return (
     <div className="fixed inset-0 z-[2500] pointer-events-none">
-      {/* Backdrop - NOW COMPLETELY TRANSPARENT, NO FADE/DIM */}
       <div 
         className="absolute inset-0 pointer-events-auto bg-transparent" 
         onClick={onClose}
       ></div>
       
-      {/* Card Content - Compact & Geometric Parity with Button */}
       <div 
         className={`absolute right-4 md:right-12 w-[160px] md:w-[205px] pointer-events-auto bg-[#0c0c0c] border border-fuchsia-500/40 shadow-[0_20px_60px_rgba(0,0,0,0.9)] flex flex-col items-center
           ${isClosing ? 'profile-sweep-out' : 'profile-sweep-in'}
@@ -53,32 +52,25 @@ const ProfileCard: React.FC<{
         style={{
           top: '80px', 
           marginTop: '4px',
-          // Matches RegisterButton chassis clip-path (8px bevels)
           clipPath: 'polygon(8px 0%, calc(100% - 8px) 0%, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0% calc(100% - 8px), 0% 8px)'
         }}
       >
-        {/* Technical Grid Overlay */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#d946ef_1px,transparent_1px)] bg-[size:8px_8px]"></div>
 
-        {/* Close Button - HIGHLIGHTED X WITH DEPTH AND BACKGROUND */}
         <button onClick={onClose} className="absolute top-2 right-2 text-white hover:text-fuchsia-400 transition-all p-1.5 bg-white/5 hover:bg-white/10 rounded-md z-20 drop-shadow-[0_0_12px_rgba(217,70,239,0.6)]">
            <svg className="w-5 h-5 md:w-5.5 md:h-5.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
 
-        {/* Side Gauge Decor */}
         <div className="absolute left-2 top-6 bottom-6 w-[1px] bg-fuchsia-500/10">
           <div className="absolute top-0 left-0 w-full h-1/4 bg-fuchsia-500 shadow-[0_0_8px_#d946ef]"></div>
         </div>
 
-        {/* User Details - REFINED SPACING & SCALING */}
         <div className="text-center w-full mb-6 mt-4 px-3 relative z-10 flex flex-col items-center overflow-hidden">
-           {/* HANDLE AT THE TOP - TRUNCATED */}
            <p className="text-white font-space text-[9px] md:text-[10px] tracking-widest mb-6 truncate w-full flex items-center justify-center font-bold">
              <span className="text-base md:text-lg font-space font-light opacity-60 mr-0.5 translate-y-[-0.5px]">@</span>
              <span className="truncate">{user.username.replace('@', '')}</span>
            </p>
            
-           {/* BIGGER PFP Container */}
            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-fuchsia-500/5 border border-fuchsia-500/20 flex items-center justify-center mb-5 relative group overflow-hidden shadow-[0_0_35px_rgba(217,70,239,0.15)] shrink-0">
               <svg className="w-12 h-12 md:w-14 md:h-14 text-fuchsia-500/80" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
@@ -88,13 +80,11 @@ const ProfileCard: React.FC<{
               </div>
            </div>
 
-           {/* GREETING - NOW MANAGED WITH ELLIPSIS LIKE THE REGISTER BUTTON */}
            <h3 className="text-white font-unbounded text-xl md:text-2xl font-black tracking-tighter leading-none truncate w-full px-1 drop-shadow-[0_0_12px_rgba(255,255,255,0.2)]">
              Hi, {user.firstName}!
            </h3>
         </div>
 
-        {/* Actions - RENAMED AND LOWERED, UNBOUNDED FONT */}
         <div className="w-full flex flex-col gap-1.5 px-3 pb-3 relative z-10">
           <button onClick={onDashboardClick} className="w-full h-11 bg-fuchsia-500/5 hover:bg-fuchsia-500/10 border border-fuchsia-500/20 hover:border-fuchsia-500/50 text-white font-unbounded text-[9px] md:text-[10px] font-black tracking-[0.1em] uppercase transition-all duration-300 rounded-lg">
              DASHBOARDS
@@ -107,20 +97,10 @@ const ProfileCard: React.FC<{
         </div>
       </div>
       <style>{`
-        .profile-sweep-in {
-          animation: sweep-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .profile-sweep-out {
-          animation: sweep-out 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        @keyframes sweep-in {
-          0% { clip-path: inset(0 0 100% 0); transform: translateY(-10px); }
-          100% { clip-path: inset(0 0 0 0); transform: translateY(0); }
-        }
-        @keyframes sweep-out {
-          0% { clip-path: inset(0 0 0 0); transform: translateY(0); }
-          100% { clip-path: inset(0 0 100% 0); transform: translateY(-10px); }
-        }
+        .profile-sweep-in { animation: sweep-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .profile-sweep-out { animation: sweep-out 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes sweep-in { 0% { clip-path: inset(0 0 100% 0); transform: translateY(-10px); } 100% { clip-path: inset(0 0 0 0); transform: translateY(0); } }
+        @keyframes sweep-out { 0% { clip-path: inset(0 0 0 0); transform: translateY(0); } 100% { clip-path: inset(0 0 100% 0); transform: translateY(-10px); } }
         @keyframes profile-scan { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translateY(120px); opacity: 0; } }
       `}</style>
     </div>
@@ -255,10 +235,27 @@ function App() {
   };
 
   const handleRegistrationSuccess = (userData: UserData) => {
-    setRegisteredUser(userData);
+    setRegisteredUser({ ...userData, registeredEvents: [] });
     setTimeout(() => {
       setRegistrationPhase('IDLE');
     }, 2500);
+  };
+
+  // Logic to handle module form clicks
+  const handleModuleJoin = (moduleName: string) => {
+    if (!registeredUser) return;
+    
+    setRegisteredUser(prev => {
+      if (!prev) return null;
+      const currentEvents = prev.registeredEvents || [];
+      if (currentEvents.includes(moduleName)) return prev;
+      
+      console.log(`✅ [LOG] Event Registration Tracked: ${moduleName} for user ${prev.username}`);
+      return {
+        ...prev,
+        registeredEvents: [...currentEvents, moduleName]
+      };
+    });
   };
 
   const handleHomeBack = () => {
@@ -336,7 +333,6 @@ function App() {
   return (
     <div className="min-h-screen w-full text-white flex flex-col items-center justify-center relative overflow-hidden font-sans bg-[#050505]">
       
-      {/* PERSISTENT BACKGROUND */}
       <div 
         className={`fixed inset-0 z-0 transition-opacity duration-1000 ${showMainLayout ? 'opacity-40' : 'opacity-100'}`}
         style={{
@@ -359,7 +355,6 @@ function App() {
 
       <div className={`fixed inset-0 z-[400] bg-black transition-opacity duration-1000 ${isTransitioning ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}></div>
 
-      {/* Profile Card - Rendered on top of content */}
       {isProfileCardOpen && registeredUser && (
         <ProfileCard 
           user={registeredUser} 
@@ -520,7 +515,7 @@ function App() {
               <div className="flex w-full h-full transition-transform duration-[800ms] ease-[cubic-bezier(0.19,1,0.22,1)]" style={{ transform: `translateX(-${activeSectionIndex * 100}vw)` }}>
                 <SectionView title="HOME"><Home onBack={handleHomeBack} onSectionChange={handleSectionSelect} initialSection={currentSection} hideNavbar={true} /></SectionView>
                 <SectionView title="GALLERY"><Gallery /></SectionView>
-                <SectionView title="MODULES"><Modules /></SectionView>
+                <SectionView title="MODULES"><Modules onJoin={handleModuleJoin} /></SectionView>
                 <SectionView title="EVENTS"><Events /></SectionView>
                 <SectionView title="TEAM"><Team /></SectionView>
               </div>
