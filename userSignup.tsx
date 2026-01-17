@@ -60,7 +60,7 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
 
   const isFieldValid = (name: string): boolean => {
     if (name === 'middleName') return true;
-    if (name === 'username') return formData.username.length >= 8; // UPDATED: min 8 characters
+    if (name === 'username') return formData.username.length >= 8; 
     if (name === 'firstName') return !!formData.firstName;
     if (name === 'lastName') return !!formData.lastName;
     if (name === 'college') return !!formData.college;
@@ -94,30 +94,22 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
     setFormData({ ...formData, [name]: formatted });
   };
 
-  // Special handler for "Other College" field - Implements automatic Title Case
   const handleOtherCollegeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    
-    // Split by spaces, capitalize first char of each word, rest lowercase
     const formatted = val.split(' ').map(word => {
       if (word.length === 0) return '';
       return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
     }).join(' ');
-    
     setFormData({ ...formData, otherCollege: formatted });
   };
 
   const handleCollegeSelect = (college: string) => {
-    // When college changes, we must SANITIZE the state of conditional fields
     setFormData({ 
       ...formData, 
       college,
-      otherCollege: '' // Clear "Others" text when selecting any college
+      otherCollege: '' 
     });
-    
-    // Clear registration digits whenever college selection changes
     setRegIdDigits(new Array(11).fill(''));
-    
     setIsDropdownOpen(false);
   };
 
@@ -145,50 +137,30 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Prevent multiple submissions while one is in progress
     if (submissionPhase !== 'IDLE') return;
-
     setHasSubmittedOnce(true);
-
     const fieldsToValidate = ['username', 'firstName', 'lastName', 'college', 'phone'];
     if (formData.college === 'Others') fieldsToValidate.push('otherCollege');
     if (formData.college === 'ASSAM UNIVERSITY SILCHAR') fieldsToValidate.push('regId');
-
     const newShakes: Record<string, boolean> = {};
     let hasError = false;
-
     fieldsToValidate.forEach(field => {
       if (!isFieldValid(field)) {
         newShakes[field] = true;
         hasError = true;
       }
     });
-
     if (hasError) {
       setShakeFields(newShakes);
       setTimeout(() => setShakeFields({}), 1000);
     } else {
       const finalPhone = phoneDigits.join('');
       const finalRegId = regIdDigits.join('');
-
-      // LOG DATA TO CONSOLE AS REQUESTED
-      console.log('✅ [LOG] Registration Initiated:', {
-        ...formData,
-        phone: finalPhone,
-        regId: finalRegId,
-        timestamp: new Date().toISOString()
-      });
-
-      // TRIGGER SUCCESS NOTIFICATION CARD
+      console.log('✅ [LOG] Registration Initiated:', { ...formData, phone: finalPhone, regId: finalRegId, timestamp: new Date().toISOString() });
       setSubmissionPhase('PROCESSING');
-      
-      // Phase 1 (Processing) lasts 5 seconds
       setTimeout(() => {
         setSubmissionPhase('SUCCESS');
         console.log('✅ [LOG] User Created Successfully');
-        
-        // Notify parent application with FULL DATA
         if (onSuccess) {
           onSuccess({
             username: formData.username,
@@ -201,11 +173,7 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
             regId: isAus ? finalRegId : undefined
           });
         }
-        
-        // Auto-close notification after 4 seconds of Success state
-        setTimeout(() => {
-          setSubmissionPhase('IDLE');
-        }, 4000);
+        setTimeout(() => setSubmissionPhase('IDLE'), 4000);
       }, 5000);
     }
   };
@@ -213,19 +181,9 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
   const getTextFieldStyle = (name: string, hasValue: boolean, isFocused: boolean) => {
     const isInvalid = shouldShowFieldLevelError(name);
     let base = "w-full h-12 md:h-16 bg-white/[0.02] rounded-xl px-6 text-white font-space text-lg outline-none transition-all duration-500 border ";
-    
-    if (isFocused) {
-      return base + "border-fuchsia-500/50 focus:bg-white/[0.04] ring-0 shadow-none";
-    }
-    
-    if (isInvalid) {
-      return base + "border-red-500 ring-2 ring-red-500/40 bg-red-500/5";
-    }
-
-    if (hasValue) {
-      return base + "border-fuchsia-500 shadow-[0_0_15px_rgba(217,70,239,0.3)] bg-fuchsia-500/[0.04]";
-    }
-
+    if (isFocused) return base + "border-fuchsia-500/50 focus:bg-white/[0.04] ring-0 shadow-none";
+    if (isInvalid) return base + "border-red-500 ring-2 ring-red-500/40 bg-red-500/5";
+    if (hasValue) return base + "border-fuchsia-500 shadow-[0_0_15px_rgba(217,70,239,0.3)] bg-fuchsia-500/[0.04]";
     return base + "border-white/10";
   };
 
@@ -233,162 +191,63 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
 
   return (
     <div className="w-full h-full bg-transparent relative flex flex-col items-center pt-8 md:pt-12 px-6 overflow-y-auto custom-scrollbar no-horizontal-scroll pb-32">
-      
-      {/* SUCCESS NOTIFICATION TOAST */}
-      <div 
-        className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[999999] w-[92%] max-w-md pointer-events-none transition-all duration-1000 cubic-bezier(0.19, 1, 0.22, 1) ${submissionPhase === 'IDLE' ? 'translate-y-40 opacity-0' : 'translate-y-0 opacity-100'}`}
-      >
+      <div className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[999999] w-[92%] max-w-md pointer-events-none transition-all duration-1000 cubic-bezier(0.19, 1, 0.22, 1) ${submissionPhase === 'IDLE' ? 'translate-y-40 opacity-0' : 'translate-y-0 opacity-100'}`}>
         <div className="bg-white rounded-[2rem] p-5 md:p-6 shadow-[0_40px_100px_rgba(0,0,0,0.6)] flex items-center gap-5 overflow-hidden relative border-b-4 border-fuchsia-500 pointer-events-auto">
-          
-          {/* ICON SECTION */}
           <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
-            {/* Phase 1 Icon: User with Spinner */}
             <div className={`absolute inset-0 flex items-center justify-center transition-all duration-700 ${submissionPhase === 'PROCESSING' ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}>
               <div className="absolute inset-0 border-[3px] border-fuchsia-100 rounded-full"></div>
               <div className="absolute inset-0 border-[3px] border-t-fuchsia-500 rounded-full animate-spin"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <svg className="w-8 h-8 text-fuchsia-600" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                </svg>
-              </div>
+              <div className="absolute inset-0 flex items-center justify-center"><svg className="w-8 h-8 text-fuchsia-600" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" /></svg></div>
             </div>
-            
-            {/* Phase 2 Icon: Checkmark */}
-            <div className={`absolute inset-0 flex items-center justify-center transition-all duration-700 ${submissionPhase === 'SUCCESS' ? 'scale-100 opacity-100 rotate-0' : 'scale-150 opacity-0 rotate-12'}`}>
-              <div className="w-full h-full bg-black rounded-full flex items-center justify-center">
-                <svg className="w-10 h-10 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              </div>
-            </div>
+            <div className={`absolute inset-0 flex items-center justify-center transition-all duration-700 ${submissionPhase === 'SUCCESS' ? 'scale-100 opacity-100 rotate-0' : 'scale-150 opacity-0 rotate-12'}`}><div className="w-full h-full bg-black rounded-full flex items-center justify-center"><svg className="w-10 h-10 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg></div></div>
           </div>
-
-          {/* TEXT SECTION */}
           <div className="flex-1 relative h-12 overflow-hidden">
-            {/* Phase 1 Text */}
-            <div className={`absolute inset-0 flex items-center gap-1 transition-all duration-700 ease-in-out ${submissionPhase === 'PROCESSING' ? 'translate-y-0 opacity-100' : '-translate-y-12 opacity-0'}`}>
-              <span className="text-black font-space font-bold text-xl tracking-tight">Creating User</span>
-              <div className="flex gap-1.5 pt-2.5">
-                <span className="w-2 h-2 bg-black rounded-full animate-[blink_1.4s_infinite_100ms]"></span>
-                <span className="w-2 h-2 bg-black rounded-full animate-[blink_1.4s_infinite_300ms]"></span>
-                <span className="w-2 h-2 bg-black rounded-full animate-[blink_1.4s_infinite_500ms]"></span>
-              </div>
-            </div>
-            
-            {/* Phase 2 Text */}
-            <div className={`absolute inset-0 flex items-center transition-all duration-700 ease-in-out ${submissionPhase === 'SUCCESS' ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}`}>
-              <span className="text-black font-space font-bold text-xl tracking-tight">User created successfully!</span>
-            </div>
+            <div className={`absolute inset-0 flex items-center gap-1 transition-all duration-700 ease-in-out ${submissionPhase === 'PROCESSING' ? 'translate-y-0 opacity-100' : '-translate-y-12 opacity-0'}`}><span className="text-black font-space font-bold text-xl tracking-tight">Creating User</span><div className="flex gap-1.5 pt-2.5"><span className="w-2 h-2 bg-black rounded-full animate-[blink_1.4s_infinite_100ms]"></span><span className="w-2 h-2 bg-black rounded-full animate-[blink_1.4s_infinite_300ms]"></span><span className="w-2 h-2 bg-black rounded-full animate-[blink_1.4s_infinite_500ms]"></span></div></div>
+            <div className={`absolute inset-0 flex items-center transition-all duration-700 ease-in-out ${submissionPhase === 'SUCCESS' ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}`}><span className="text-black font-space font-bold text-xl tracking-tight">User created successfully!</span></div>
           </div>
         </div>
       </div>
 
       <div className="relative z-10 mb-12 md:mb-20 text-center animate-fade-in-header">
-        <h2 className="text-5xl md:text-8xl font-anton tracking-[0.05em] text-white uppercase opacity-95 leading-tight">
-          USER <span className="text-fuchsia-500 drop-shadow-[0_0_15px_#d946ef]">REGISTRATION</span>
-        </h2>
+        <h2 className="text-5xl md:text-8xl font-anton tracking-[0.05em] text-white uppercase opacity-95 leading-tight">USER <span className="text-fuchsia-500 drop-shadow-[0_0_15px_#d946ef]">REGISTRATION</span></h2>
         <div className="h-[1.5px] w-full max-w-2xl bg-gradient-to-r from-transparent via-fuchsia-500/40 to-transparent mx-auto mt-4"></div>
       </div>
 
       <form onSubmit={handleSubmit} className="relative z-10 w-full max-w-5xl flex flex-col">
-        
-        {/* Username */}
         <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8 animate-stagger-up" style={{ animationDelay: '0ms' }}>
-          <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${shouldShowFieldLevelError('username') ? 'text-red-500' : (formData.username.length > 1 ? 'text-white' : 'text-white/30')} group-hover:text-white`}>
-            USERNAME:
-          </label>
-          <div className={`flex-1 ${shakeFields.username ? 'animate-shake' : ''}`}>
-            <input
-              type="text"
-              name="username"
-              value={formData.username}
-              onFocus={() => setFocusedField('username')}
-              onBlur={() => setFocusedField(null)}
-              onChange={handleUsernameChange}
-              placeholder="@username (min 8 chars)"
-              className={getTextFieldStyle('username', formData.username.length > 1, focusedField === 'username')}
-              autoComplete="off"
-            />
-          </div>
+          <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${shouldShowFieldLevelError('username') ? 'text-red-500' : (formData.username.length > 1 ? 'text-white' : 'text-white/30')} group-hover:text-white`}>USERNAME:</label>
+          <div className={`flex-1 ${shakeFields.username ? 'animate-shake' : ''}`}><input type="text" name="username" value={formData.username} onFocus={() => setFocusedField('username')} onBlur={() => setFocusedField(null)} onChange={handleUsernameChange} placeholder="@username (min 8 chars)" className={getTextFieldStyle('username', formData.username.length > 1, focusedField === 'username')} autoComplete="off" /></div>
         </div>
 
-        {/* First Name */}
         <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8 animate-stagger-up" style={{ animationDelay: '100ms' }}>
-          <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${shouldShowFieldLevelError('firstName') ? 'text-red-500' : (formData.firstName ? 'text-white' : 'text-white/30')} group-hover:text-white`}>
-            FIRST NAME:
-          </label>
-          <div className={`flex-1 ${shakeFields.firstName ? 'animate-shake' : ''}`}>
-            <input
-              type="text"
-              name="firstName"
-              value={formData.firstName}
-              onFocus={() => setFocusedField('firstName')}
-              onBlur={() => setFocusedField(null)}
-              onChange={handleNameChange}
-              className={getTextFieldStyle('firstName', !!formData.firstName, focusedField === 'firstName')}
-              autoComplete="off"
-            />
-          </div>
+          <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${shouldShowFieldLevelError('firstName') ? 'text-red-500' : (formData.firstName ? 'text-white' : 'text-white/30')} group-hover:text-white`}>FIRST NAME:</label>
+          <div className={`flex-1 ${shakeFields.firstName ? 'animate-shake' : ''}`}><input type="text" name="firstName" value={formData.firstName} onFocus={() => setFocusedField('firstName')} onBlur={() => setFocusedField(null)} onChange={handleNameChange} className={getTextFieldStyle('firstName', !!formData.firstName, focusedField === 'firstName')} autoComplete="off" /></div>
         </div>
 
-        {/* Middle Name - FIXED: Turns white when value exists */}
         <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8 animate-stagger-up" style={{ animationDelay: '200ms' }}>
-          <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase transition-all duration-500 ${formData.middleName ? 'text-white' : 'text-white/30'} group-hover:text-white`}>
-            MIDDLE NAME:
-          </label>
-          <div className="flex-1">
-            <input
-              type="text"
-              name="middleName"
-              value={formData.middleName}
-              onFocus={() => setFocusedField('middleName')}
-              onBlur={() => setFocusedField(null)}
-              onChange={handleNameChange}
-              className={getTextFieldStyle('middleName', !!formData.middleName, focusedField === 'middleName')}
-              autoComplete="off"
-            />
-          </div>
+          <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase transition-all duration-500 ${formData.middleName ? 'text-white' : 'text-white/30'} group-hover:text-white`}>MIDDLE NAME:</label>
+          <div className="flex-1"><input type="text" name="middleName" value={formData.middleName} onFocus={() => setFocusedField('middleName')} onBlur={() => setFocusedField(null)} onChange={handleNameChange} className={getTextFieldStyle('middleName', !!formData.middleName, focusedField === 'middleName')} autoComplete="off" /></div>
         </div>
 
-        {/* Last Name */}
         <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8 animate-stagger-up" style={{ animationDelay: '300ms' }}>
-          <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${shouldShowFieldLevelError('lastName') ? 'text-red-500' : (formData.lastName ? 'text-white' : 'text-white/30')} group-hover:text-white`}>
-            LAST NAME:
-          </label>
-          <div className={`flex-1 ${shakeFields.lastName ? 'animate-shake' : ''}`}>
-            <input
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              onFocus={() => setFocusedField('lastName')}
-              onBlur={() => setFocusedField(null)}
-              onChange={handleNameChange}
-              className={getTextFieldStyle('lastName', !!formData.lastName, focusedField === 'lastName')}
-              autoComplete="off"
-            />
-          </div>
+          <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${shouldShowFieldLevelError('lastName') ? 'text-red-500' : (formData.lastName ? 'text-white' : 'text-white/30')} group-hover:text-white`}>LAST NAME:</label>
+          <div className={`flex-1 ${shakeFields.lastName ? 'animate-shake' : ''}`}><input type="text" name="lastName" value={formData.lastName} onFocus={() => setFocusedField('lastName')} onBlur={() => setFocusedField(null)} onChange={handleNameChange} className={getTextFieldStyle('lastName', !!formData.lastName, focusedField === 'lastName')} autoComplete="off" /></div>
         </div>
 
-        {/* Phone Number */}
+        {/* Phone Number - Reverted desktop to h-16 (Normal), kept mobile h-20 (Longer) */}
         <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8 animate-stagger-up" style={{ animationDelay: '400ms' }}>
-          <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${hasSubmittedOnce && !isFieldValid('phone') ? 'text-red-500' : (phoneDigits.some(d => d) ? 'text-white' : 'text-white/30')} group-hover:text-white`}>
-            PHONE NUMBER:
-          </label>
-          <div className={`flex-1 flex gap-2 md:gap-3 justify-between items-center h-12 md:h-16 ${shakeFields.phone ? 'animate-shake' : ''}`}>
+          <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${hasSubmittedOnce && !isFieldValid('phone') ? 'text-red-500' : (phoneDigits.some(d => d) ? 'text-white' : 'text-white/30')} group-hover:text-white`}>PHONE NUMBER:</label>
+          <div className={`flex-1 flex gap-1.5 md:gap-3 justify-between items-center h-20 md:h-16 ${shakeFields.phone ? 'animate-shake' : ''}`}>
             {phoneDigits.map((digit, idx) => {
               const isFocused = focusedPhoneIdx === idx;
               const hasValue = !!digit;
               const isBlockInError = hasSubmittedOnce && !isFieldValid('phone') && !hasValue && !isFocused;
-              
               return (
                 <div key={idx} className="relative w-full h-full">
                   <input
                     ref={el => { phoneRefs.current[idx] = el; }}
-                    type="text"
-                    maxLength={1}
-                    value={digit}
-                    onFocus={() => setFocusedPhoneIdx(idx)}
-                    onBlur={() => setFocusedPhoneIdx(null)}
+                    type="text" maxLength={1} value={digit}
+                    onFocus={() => setFocusedPhoneIdx(idx)} onBlur={() => setFocusedPhoneIdx(null)}
                     onChange={(e) => handlePhoneDigitChange(idx, e.target.value)}
                     onKeyDown={(e) => e.key === 'Backspace' && !phoneDigits[idx] && idx > 0 && phoneRefs.current[idx - 1]?.focus()}
                     className={`w-full h-full bg-white/[0.03] border rounded-lg text-center text-white font-anton text-lg md:text-2xl outline-none transition-all duration-300
@@ -396,93 +255,58 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
                         (isBlockInError ? 'border-red-500 ring-2 ring-red-500/40 bg-red-500/5' : 
                           (hasValue ? 'border-fuchsia-500 shadow-[0_0_12px_rgba(217,70,239,0.4)] bg-fuchsia-500/5' : 'border-white/10'))}`}
                   />
-                  {isBlockInError && (
-                    <span className="absolute inset-0 flex items-center justify-center text-red-500 font-anton text-2xl pointer-events-none animate-pulse">*</span>
-                  )}
+                  {isBlockInError && <span className="absolute inset-0 flex items-center justify-center text-red-500 font-anton text-2xl pointer-events-none animate-pulse">*</span>}
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* Custom College Dropdown */}
         <div className="flex flex-col md:flex-row md:items-center gap-3 group relative z-50 mb-6 md:mb-8 animate-stagger-up" style={{ animationDelay: '500ms' }}>
-          <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${shouldShowFieldLevelError('college') ? 'text-red-500' : (formData.college ? 'text-white' : 'text-white/30')} group-hover:text-white`}>
-            COLLEGE NAME:
-          </label>
+          <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${shouldShowFieldLevelError('college') ? 'text-red-500' : (formData.college ? 'text-white' : 'text-white/30')} group-hover:text-white`}>COLLEGE NAME:</label>
           <div className={`flex-1 relative ${shakeFields.college ? 'animate-shake' : ''}`} ref={dropdownRef}>
             <button
-              type="button"
-              onClick={() => { setIsDropdownOpen(!isDropdownOpen); setFocusedField('college'); }}
-              onBlur={() => setFocusedField(null)}
+              type="button" onClick={() => { setIsDropdownOpen(!isDropdownOpen); setFocusedField('college'); }} onBlur={() => setFocusedField(null)}
               className={`w-full h-12 md:h-16 bg-[#0a0a0a] border rounded-xl px-6 text-left flex items-center justify-between transition-all duration-[800ms] cubic-bezier(0.19, 1, 0.22, 1)
                 ${isDropdownOpen ? 'border-fuchsia-500/60 ring-2 ring-fuchsia-500/10 bg-fuchsia-500/[0.03]' : (shouldShowFieldLevelError('college') ? 'border-red-500 ring-2 ring-red-500/40 bg-red-500/5' : (formData.college ? 'border-fuchsia-500 shadow-[0_0_20px_rgba(217,70,239,0.25)]' : 'border-white/10'))}
                 ${formData.college ? 'text-white' : 'text-white/40'}
               `}
             >
-              <span className="font-space text-sm md:text-lg uppercase tracking-wider truncate">
-                {formData.college || "SELECT YOUR INSTITUTION"}
-              </span>
-              
-              <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center border transition-all duration-500 shrink-0 ml-4 ${isDropdownOpen ? 'border-fuchsia-500 bg-fuchsia-500/10 shadow-[0_0_15px_#d946ef]' : 'border-white/10 bg-white/5 group-hover:border-fuchsia-500/40'}`}>
-                <svg className={`w-4 h-4 md:w-5 md:h-5 text-fuchsia-500 transition-transform duration-700 cubic-bezier(0.19, 1, 0.22, 1) ${isDropdownOpen ? 'rotate-180 drop-shadow-[0_0_8px_#d946ef]' : 'rotate-0'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" /></svg>
-              </div>
+              <span className="font-space text-sm md:text-lg uppercase tracking-wider truncate">{formData.college || "SELECT YOUR INSTITUTION"}</span>
+              <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center border transition-all duration-500 shrink-0 ml-4 ${isDropdownOpen ? 'border-fuchsia-500 bg-fuchsia-500/10 shadow-[0_0_15px_#d946ef]' : 'border-white/10 bg-white/5 group-hover:border-fuchsia-500/40'}`}><svg className={`w-4 h-4 md:w-5 md:h-5 text-fuchsia-500 transition-transform duration-700 cubic-bezier(0.19, 1, 0.22, 1) ${isDropdownOpen ? 'rotate-180 drop-shadow-[0_0_8px_#d946ef]' : 'rotate-0'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" /></svg></div>
             </button>
             <div className={`absolute top-full left-0 right-0 mt-2 bg-black/95 backdrop-blur-3xl border border-fuchsia-500/40 rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.9)] overflow-hidden transition-all duration-500 origin-top z-[100] ${isDropdownOpen ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-95 pointer-events-none'}`}>
               <div className="py-2 max-h-[300px] overflow-y-auto custom-scrollbar">
                 {COLLEGES.map((college) => (
-                  <div key={college} onClick={() => handleCollegeSelect(college)} className={`px-6 py-4 cursor-pointer font-anton tracking-[0.1em] text-sm md:text-lg transition-all duration-300 relative group/opt ${formData.college === college ? 'text-fuchsia-500 bg-fuchsia-500/10' : 'text-white/70'} hover:text-white hover:pl-9`}>
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-fuchsia-500 scale-y-0 group-hover/opt:scale-y-100 transition-transform origin-top"></div>
-                    <span className="relative z-10">{college}</span>
-                  </div>
+                  <div key={college} onClick={() => handleCollegeSelect(college)} className={`px-6 py-4 cursor-pointer font-anton tracking-[0.1em] text-sm md:text-lg transition-all duration-300 relative group/opt ${formData.college === college ? 'text-fuchsia-500 bg-fuchsia-500/10' : 'text-white/70'} hover:text-white hover:pl-9`}><div className="absolute left-0 top-0 bottom-0 w-1 bg-fuchsia-500 scale-y-0 group-hover/opt:scale-y-100 transition-transform origin-top"></div><span className="relative z-10">{college}</span></div>
                 ))}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Specified College Input (Conditional) - UPDATED with Title Case handler */}
         {formData.college === 'Others' && (
           <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8 animate-fade-in-up">
-            <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${shouldShowFieldLevelError('otherCollege') ? 'text-red-500' : (formData.otherCollege ? 'text-white' : 'text-white/30')} group-hover:text-white`}>
-              PLEASE SPECIFY:
-            </label>
-            <div className={`flex-1 ${shakeFields.otherCollege ? 'animate-shake' : ''}`}>
-              <input
-                type="text"
-                name="otherCollege"
-                value={formData.otherCollege}
-                onFocus={() => setFocusedField('otherCollege')}
-                onBlur={() => setFocusedField(null)}
-                onChange={handleOtherCollegeChange}
-                placeholder="ENTER YOUR COLLEGE NAME"
-                className={getTextFieldStyle('otherCollege', !!formData.otherCollege, focusedField === 'otherCollege')}
-              />
-            </div>
+            <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${shouldShowFieldLevelError('otherCollege') ? 'text-red-500' : (formData.otherCollege ? 'text-white' : 'text-white/30')} group-hover:text-white`}>PLEASE SPECIFY:</label>
+            <div className={`flex-1 ${shakeFields.otherCollege ? 'animate-shake' : ''}`}><input type="text" name="otherCollege" value={formData.otherCollege} onFocus={() => setFocusedField('otherCollege')} onBlur={() => setFocusedField(null)} onChange={handleOtherCollegeChange} placeholder="ENTER YOUR COLLEGE NAME" className={getTextFieldStyle('otherCollege', !!formData.otherCollege, focusedField === 'otherCollege')} /></div>
           </div>
         )}
 
-        {/* Registration ID for AUS (Conditional) */}
+        {/* Registration ID for AUS - Reverted desktop to h-16 (Normal), kept mobile h-20 (Longer) */}
         {isAus && (
           <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8 animate-fade-in-up">
-            <label className={`md:w-[42%] text-base md:text-xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${hasSubmittedOnce && !isFieldValid('regId') ? 'text-red-500' : (regIdDigits.some(d => d) ? 'text-fuchsia-500 drop-shadow-[0_0_8px_rgba(217,70,239,0.6)]' : 'text-white/30')}`}>
-              REGISTRATION ID [ONLY FOR AUS STUDENTS]:
-            </label>
-            <div className={`flex-1 flex gap-1.5 md:gap-2 justify-between items-center h-12 md:h-16 ${shakeFields.regId ? 'animate-shake' : ''}`}>
+            <label className={`md:w-[42%] text-base md:text-xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${hasSubmittedOnce && !isFieldValid('regId') ? 'text-red-500' : (regIdDigits.some(d => d) ? 'text-fuchsia-500 drop-shadow-[0_0_8px_rgba(217,70,239,0.6)]' : 'text-white/30')}`}>REGISTRATION ID [ONLY FOR AUS STUDENTS]:</label>
+            <div className={`flex-1 flex gap-1 md:gap-2 justify-between items-center h-20 md:h-16 ${shakeFields.regId ? 'animate-shake' : ''}`}>
               {regIdDigits.map((digit, idx) => {
                 const isFocused = focusedRegIdIdx === idx;
                 const hasValue = !!digit;
                 const isBlockInError = hasSubmittedOnce && !isFieldValid('regId') && !hasValue && !isFocused;
-
                 return (
                   <div key={idx} className="relative w-full h-full">
                     <input
                       ref={el => { regIdRefs.current[idx] = el; }}
-                      type="text"
-                      maxLength={1}
-                      value={digit}
-                      onFocus={() => setFocusedRegIdIdx(idx)}
-                      onBlur={() => setFocusedRegIdIdx(null)}
+                      type="text" maxLength={1} value={digit}
+                      onFocus={() => setFocusedRegIdIdx(idx)} onBlur={() => setFocusedRegIdIdx(null)}
                       onChange={(e) => handleRegIdDigitChange(idx, e.target.value)}
                       onKeyDown={(e) => e.key === 'Backspace' && !regIdDigits[idx] && idx > 0 && regIdRefs.current[idx - 1]?.focus()}
                       className={`w-full h-full bg-white/[0.03] border rounded-lg text-center text-white font-anton text-lg md:text-2xl outline-none transition-all duration-300
@@ -491,9 +315,7 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
                             (hasValue ? 'border-fuchsia-500 shadow-[0_0_12px_rgba(217,70,239,0.4)] bg-fuchsia-500/5' : 'border-white/10'))}`}
                       autoComplete="off"
                     />
-                    {isBlockInError && (
-                      <span className="absolute inset-0 flex items-center justify-center text-red-500 font-anton text-2xl pointer-events-none animate-pulse">*</span>
-                    )}
+                    {isBlockInError && <span className="absolute inset-0 flex items-center justify-center text-red-500 font-anton text-2xl pointer-events-none animate-pulse">*</span>}
                   </div>
                 );
               })}
@@ -501,14 +323,8 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
           </div>
         )}
 
-        {/* Submit Section */}
         <div className="mt-8 md:mt-12 flex justify-center pb-20 animate-stagger-up" style={{ animationDelay: '700ms' }}>
-          <button 
-            type="submit"
-            onMouseEnter={() => { setIsSubmitHovered(true); setIsSubmitGlitching(true); }}
-            onMouseLeave={() => { setIsSubmitHovered(false); setIsSubmitGlitching(false); }}
-            className={`group relative outline-none transition-all duration-500 flex flex-col items-center justify-center px-20 py-4 md:px-28 md:py-5 active:scale-95 ${submissionPhase !== 'IDLE' ? 'pointer-events-none opacity-50' : ''}`}
-          >
+          <button type="submit" onMouseEnter={() => { setIsSubmitHovered(true); setIsSubmitGlitching(true); }} onMouseLeave={() => { setIsSubmitHovered(false); setIsSubmitGlitching(false); }} className={`group relative outline-none transition-all duration-500 flex flex-col items-center justify-center px-20 py-4 md:px-28 md:py-5 active:scale-95 ${submissionPhase !== 'IDLE' ? 'pointer-events-none opacity-50' : ''}`}>
             <div className={`absolute inset-0 bg-fuchsia-600/10 blur-[40px] rounded-full transition-opacity duration-700 ${isSubmitHovered ? 'opacity-100' : 'opacity-0'}`}></div>
             <div className="absolute inset-0 bg-[#0c0c0c] border border-fuchsia-500/30 transition-all duration-700 group-hover:border-fuchsia-500 group-hover:scale-[1.02] shadow-[inset_0_0_15px_rgba(217,70,239,0.1)]" style={{ clipPath: 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px)' }}>
               <div className="absolute inset-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#d946ef_1.5px,transparent_1.5px)] bg-[size:8px_8px]"></div>
@@ -531,12 +347,7 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
         .animate-stagger-up { animation: stagger-up 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards; opacity: 0; }
         @keyframes fade-in-up { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
-        
-        /* BLINKING DOTS ANIMATION */
-        @keyframes blink {
-          0%, 100% { opacity: 0.2; transform: scale(0.8); }
-          50% { opacity: 1; transform: scale(1.1); }
-        }
+        @keyframes blink { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.1); } }
       `}</style>
     </div>
   );
