@@ -32,7 +32,6 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({
   const isExpandedDashboard = dashboardPhase === 'EXPANDED';
   const isFullWidthMode = isExpandedRegistration || isExpandedDashboard;
   
-  // Capture the transition frame immediately to prevent snapping
   const isTransitioningBack = (prevPhaseRef.current === 'EXPANDED' && registrationPhase === 'IDLE') ||
                                (prevDashRef.current === 'EXPANDED' && dashboardPhase === 'IDLE');
 
@@ -43,13 +42,13 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({
     }
   }, [initialSection]);
 
-  // Handle the Exit Sequence State
   useEffect(() => {
     if (isTransitioningBack) {
       setIsExiting(true);
+      // Universal transition speed: 1 second
       const timer = setTimeout(() => {
         setIsExiting(false);
-      }, 1000); // Match the 1s shortening duration
+      }, 1000); 
       return () => clearTimeout(timer);
     }
     prevPhaseRef.current = registrationPhase;
@@ -71,6 +70,7 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({
         transform: 'none'
       };
     }
+    
     return {
       left: `${activeIndex * 20}%`,
       width: '20%',
@@ -123,9 +123,9 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({
     if (isFullWidthMode || isExiting || !isDragging || !trackRef.current) return;
     const rect = trackRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
-    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    const index = Math.floor(percentage / 20);
+    const percentage = (x / rect.width) * 100;
     
+    const index = Math.floor(Math.max(0, Math.min(99, percentage)) / 20);
     if (index !== activeIndex && index >= 0 && index < SECTIONS.length) {
         setActiveIndex(index);
         notifyChange(index);
@@ -139,14 +139,14 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({
   const isActive = hovering || isDragging || isSticky || isFullWidthMode;
   const isNavLabelActive = isActive || isExiting;
 
-  // Determine active duration to ensure no instant jumps
-  const activeDurationClass = isFullWidthMode 
-    ? 'duration-1000' 
-    : (isExiting || isTransitioningBack ? 'duration-[1000ms]' : 'duration-300');
+  // Universal 1-second duration
+  const activeDurationClass = 'duration-[1000ms]';
+
+  // Standard smooth timing function
+  const timingFunc = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
   return (
     <div className={`relative flex flex-col items-center pointer-events-auto transition-all duration-300 w-auto`}>
-        {/* The Slider Track */}
         <div 
             ref={trackRef}
             className={`
@@ -156,6 +156,7 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({
                 transition-all ${activeDurationClass}
                 ${isFullWidthMode ? 'border-fuchsia-500/50 shadow-[0_0_50px_rgba(217,70,239,0.3)]' : ''}
             `}
+            style={{ transitionTimingFunction: timingFunc }}
             onMouseMove={handleMouseMove}
             onMouseDown={(e) => { 
                 if (isFullWidthMode || isExiting) return;
@@ -167,17 +168,15 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({
             onMouseLeave={handleMouseLeave}
             onMouseEnter={handleMouseEnter}
         >
-            {/* SNAP DOTS */}
-            <div className={`absolute inset-0 flex justify-between px-[10%] items-center pointer-events-none transition-all ${isFullWidthMode ? 'opacity-0 duration-300' : 'opacity-100 duration-300 delay-[500ms]'}`}>
+            <div className={`absolute inset-0 flex justify-between px-[10%] items-center pointer-events-none transition-all ${isFullWidthMode ? 'opacity-0 duration-500' : 'opacity-100 duration-500 delay-[200ms]'}`}>
                 {SECTIONS.map((_, i) => (
                     <div 
                         key={i} 
-                        className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${i === activeIndex ? 'bg-fuchsia-500 shadow-[0_0_8px_#d946ef] scale-125' : 'bg-fuchsia-500/20'}`}
+                        className={`w-1.5 h-1.5 rounded-full transition-all duration-[500ms] ${i === activeIndex ? 'bg-fuchsia-500 shadow-[0_0_8px_#d946ef] scale-125' : 'bg-fuchsia-500/20'}`}
                     ></div>
                 ))}
             </div>
 
-            {/* Clickable Zones */}
             {!isFullWidthMode && !isExiting && SECTIONS.map((_, i) => (
                 <div 
                     key={i} 
@@ -186,11 +185,10 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({
                 ></div>
             ))}
 
-            {/* Neon Pill - Physical Shortening (1000ms duration, no delay) */}
             <div 
                 className={`absolute h-full flex items-center justify-center z-20 pointer-events-none transition-all 
-                  ${activeDurationClass} cubic-bezier(0.65, 0, 0.35, 1)`}
-                style={getPillPositionStyle()}
+                  ${activeDurationClass}`}
+                style={{ ...getPillPositionStyle(), transitionTimingFunction: timingFunc }}
             >
                 <div className={`
                     bg-fuchsia-500 rounded-full flex items-center justify-center relative overflow-hidden
@@ -198,43 +196,39 @@ const NavbarSlider: React.FC<NavbarSliderProps> = ({
                     ${isFullWidthMode 
                       ? 'w-full h-[80%]' 
                       : (isNavLabelActive ? 'w-[92%] h-[80%] shadow-[0_0_25px_rgba(217,70,239,0.9)]' : 'w-4 h-4 shadow-[0_0_10px_rgba(217,70,239,0.4)]')}
-                `}>
-                    <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite] transition-opacity duration-300 ${isNavLabelActive ? 'opacity-100' : 'opacity-0'}`}></div>
+                `} style={{ transitionTimingFunction: timingFunc }}>
+                    <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2.5s_infinite] transition-opacity duration-500 ${isNavLabelActive ? 'opacity-100' : 'opacity-0'}`}></div>
                     
-                    {/* Cinematic Text Container */}
                     <div className="relative h-full w-full flex items-center justify-center overflow-hidden">
-                      {/* Standard Navigation Label - Appears precisely when shortening finishes (1s) */}
                       <span className={`
                           absolute font-anton tracking-[0.05em] text-white uppercase 
                           drop-shadow-[0_0_3px_rgba(0,0,0,0.3)] leading-none transition-all
                           text-sm md:text-lg
                           ${!isFullWidthMode && isNavLabelActive 
-                            ? `opacity-100 scale-100 translate-y-0 duration-300 ${isExiting ? 'delay-1000' : 'delay-0'}` 
-                            : 'opacity-0 scale-50 translate-y-4 duration-300'}
+                            ? `opacity-100 scale-100 translate-y-0 duration-[500ms] ${isExiting ? 'delay-[400ms]' : 'delay-0'}` 
+                            : 'opacity-0 scale-50 translate-y-4 duration-[400ms]'}
                       `}>
                           {SECTIONS[activeIndex]}
                       </span>
 
-                      {/* User Registration Label */}
                       <span className={`
                           absolute font-anton tracking-[0.05em] text-white uppercase 
                           drop-shadow-[0_0_3px_rgba(0,0,0,0.3)] leading-none transition-all
                           text-sm md:text-lg
                           ${isExpandedRegistration 
-                              ? 'opacity-100 translate-y-0 duration-700 delay-500 ease-out' 
-                              : 'opacity-0 -translate-y-12 duration-500 delay-0 ease-in'}
+                              ? 'opacity-100 translate-y-0 duration-[700ms] delay-300 ease-out' 
+                              : 'opacity-0 -translate-y-12 duration-[500ms] delay-0 ease-in'}
                       `}>
                           USER REGISTRATION
                       </span>
 
-                      {/* User Dashboard Label */}
                       <span className={`
                           absolute font-anton tracking-[0.05em] text-white uppercase 
                           drop-shadow-[0_0_3px_rgba(0,0,0,0.3)] leading-none transition-all
                           text-sm md:text-lg
                           ${isExpandedDashboard 
-                              ? 'opacity-100 translate-y-0 duration-700 delay-500 ease-out' 
-                              : 'opacity-0 -translate-y-12 duration-500 delay-0 ease-in'}
+                              ? 'opacity-100 translate-y-0 duration-[700ms] delay-300 ease-out' 
+                              : 'opacity-0 -translate-y-12 duration-[500ms] delay-0 ease-in'}
                       `}>
                           USER DASHBOARD
                       </span>
