@@ -17,11 +17,108 @@ import Events from './components/Events';
 import Team from './components/Team';
 import UserSignup from './userSignup';
 
+// --- PROFILE CARD COMPONENT ---
+const ProfileCard: React.FC<{ 
+  user: { username: string, firstName: string, lastName: string }, 
+  isClosing: boolean,
+  onClose: () => void,
+  onSignOut: () => void 
+}> = ({ user, isClosing, onClose, onSignOut }) => {
+  return (
+    <div className="fixed inset-0 z-[2500] pointer-events-none">
+      {/* Backdrop - NOW COMPLETELY TRANSPARENT, NO FADE/DIM */}
+      <div 
+        className="absolute inset-0 pointer-events-auto bg-transparent" 
+        onClick={onClose}
+      ></div>
+      
+      {/* Card Content - Compact & Geometric Parity with Button */}
+      <div 
+        className={`absolute right-4 md:right-12 w-[160px] md:w-[205px] pointer-events-auto bg-[#0c0c0c] border border-fuchsia-500/40 shadow-[0_20px_60px_rgba(0,0,0,0.9)] flex flex-col items-center
+          ${isClosing ? 'profile-sweep-out' : 'profile-sweep-in'}
+        `}
+        style={{
+          top: '80px', 
+          marginTop: '4px',
+          // Matches RegisterButton chassis clip-path (8px bevels)
+          clipPath: 'polygon(8px 0%, calc(100% - 8px) 0%, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0% calc(100% - 8px), 0% 8px)'
+        }}
+      >
+        {/* Technical Grid Overlay */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#d946ef_1px,transparent_1px)] bg-[size:8px_8px]"></div>
+
+        {/* Close Button - HIGHLIGHTED X WITH DEPTH AND BACKGROUND */}
+        <button onClick={onClose} className="absolute top-2 right-2 text-white hover:text-fuchsia-400 transition-all p-1.5 bg-white/5 hover:bg-white/10 rounded-md z-20 drop-shadow-[0_0_12px_rgba(217,70,239,0.6)]">
+           <svg className="w-5 h-5 md:w-5.5 md:h-5.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+
+        {/* Side Gauge Decor */}
+        <div className="absolute left-2 top-6 bottom-6 w-[1px] bg-fuchsia-500/10">
+          <div className="absolute top-0 left-0 w-full h-1/4 bg-fuchsia-500 shadow-[0_0_8px_#d946ef]"></div>
+        </div>
+
+        {/* User Details - REFINED SPACING & SCALING */}
+        <div className="text-center w-full mb-6 mt-4 px-3 relative z-10 flex flex-col items-center overflow-hidden">
+           {/* HANDLE AT THE TOP - TRUNCATED */}
+           <p className="text-white font-space text-[9px] md:text-[10px] tracking-widest mb-6 truncate w-full flex items-center justify-center font-bold">
+             <span className="text-base md:text-lg font-space font-light opacity-60 mr-0.5 translate-y-[-0.5px]">@</span>
+             <span className="truncate">{user.username.replace('@', '')}</span>
+           </p>
+           
+           {/* BIGGER PFP Container */}
+           <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-fuchsia-500/5 border border-fuchsia-500/20 flex items-center justify-center mb-5 relative group overflow-hidden shadow-[0_0_35px_rgba(217,70,239,0.15)] shrink-0">
+              <svg className="w-12 h-12 md:w-14 md:h-14 text-fuchsia-500/80" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
+              <div className="absolute inset-0 pointer-events-none">
+                 <div className="absolute top-0 left-0 w-full h-[2px] bg-fuchsia-400/40 animate-[profile-scan_4s_linear_infinite]"></div>
+              </div>
+           </div>
+
+           {/* GREETING - NOW MANAGED WITH ELLIPSIS LIKE THE REGISTER BUTTON */}
+           <h3 className="text-white font-unbounded text-xl md:text-2xl font-black tracking-tighter leading-none truncate w-full px-1 drop-shadow-[0_0_12px_rgba(255,255,255,0.2)]">
+             Hi, {user.firstName}!
+           </h3>
+        </div>
+
+        {/* Actions - RENAMED AND LOWERED, UNBOUNDED FONT */}
+        <div className="w-full flex flex-col gap-1.5 px-3 pb-3 relative z-10">
+          <button className="w-full h-11 bg-fuchsia-500/5 hover:bg-fuchsia-500/10 border border-fuchsia-500/20 hover:border-fuchsia-500/50 text-white font-unbounded text-[9px] md:text-[10px] font-black tracking-[0.1em] uppercase transition-all duration-300 rounded-lg">
+             DASHBOARDS
+          </button>
+          
+          <button onClick={onSignOut} className="w-full h-11 bg-white/5 hover:bg-red-500/10 text-gray-500 hover:text-red-400 border border-transparent hover:border-red-500/30 font-unbounded text-[9px] md:text-[10px] font-black tracking-[0.05em] uppercase transition-all duration-300 flex items-center justify-center gap-2 rounded-lg">
+             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+             Sign out
+          </button>
+        </div>
+      </div>
+      <style>{`
+        .profile-sweep-in {
+          animation: sweep-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .profile-sweep-out {
+          animation: sweep-out 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes sweep-in {
+          0% { clip-path: inset(0 0 100% 0); transform: translateY(-10px); }
+          100% { clip-path: inset(0 0 0 0); transform: translateY(0); }
+        }
+        @keyframes sweep-out {
+          0% { clip-path: inset(0 0 0 0); transform: translateY(0); }
+          100% { clip-path: inset(0 0 100% 0); transform: translateY(-10px); }
+        }
+        @keyframes profile-scan { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translateY(120px); opacity: 0; } }
+      `}</style>
+    </div>
+  );
+};
+
 // Generic View for Sub-Sections
 const SectionView: React.FC<{ title: string; children?: React.ReactNode }> = ({ title, children }) => (
   <div className="w-screen h-full flex flex-col items-center justify-start shrink-0 relative overflow-hidden select-none">
     {children ? children : (
-      <div className="relative z-10 flex flex-col items-center animate-fade-in pt-40">
+      <div className="relative z-10 flex flex-col items-center pt-40">
         <h1 className="text-6xl md:text-9xl font-mono font-bold tracking-[0.3em] text-white uppercase drop-shadow-[0_0_40px_rgba(217,70,239,0.4)]">
           {title}
         </h1>
@@ -55,6 +152,8 @@ function App() {
   // Registration Sequence State
   const [registrationPhase, setRegistrationPhase] = useState<'IDLE' | 'EXPANDED'>('IDLE');
   const [registeredUser, setRegisteredUser] = useState<{username: string, firstName: string, lastName: string} | null>(null);
+  const [isProfileCardOpen, setIsProfileCardOpen] = useState(false);
+  const [isProfileClosing, setIsProfileClosing] = useState(false);
 
   // Easter Egg & Persistence Logic
   const [isTerminalUnlocked, setIsTerminalUnlocked] = useState(false);
@@ -99,12 +198,43 @@ function App() {
   };
 
   const handleRegisterClick = () => {
-    setRegistrationPhase('EXPANDED');
+    if (registeredUser) {
+        setIsProfileCardOpen(true);
+        setIsProfileClosing(false);
+        setIsMobileMenuOpen(false);
+    } else {
+        setRegistrationPhase('EXPANDED');
+    }
+  };
+
+  const handleCloseProfile = () => {
+    setIsProfileClosing(true);
+    setTimeout(() => {
+      setIsProfileCardOpen(false);
+      setIsProfileClosing(false);
+    }, 600); 
+  };
+
+  const handleSignOut = () => {
+    setIsProfileClosing(true);
+    setTimeout(() => {
+      setIsTransitioning(true);
+      setIsProfileCardOpen(false);
+      setIsProfileClosing(false);
+      
+      setTimeout(() => {
+          setRegisteredUser(null);
+          setRegistrationPhase('IDLE');
+      }, 500);
+
+      setTimeout(() => {
+          setIsTransitioning(false);
+      }, 1200);
+    }, 600);
   };
 
   const handleRegistrationSuccess = (userData: {username: string, firstName: string, lastName: string}) => {
     setRegisteredUser(userData);
-    // After a delay to allow the user to see the success toast in UserSignup, return to main view
     setTimeout(() => {
       setRegistrationPhase('IDLE');
     }, 2500);
@@ -204,6 +334,16 @@ function App() {
 
       <div className={`fixed inset-0 z-[400] bg-black transition-opacity duration-1000 ${isTransitioning ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}></div>
 
+      {/* Profile Card - Rendered on top of content */}
+      {isProfileCardOpen && registeredUser && (
+        <ProfileCard 
+          user={registeredUser} 
+          isClosing={isProfileClosing}
+          onClose={handleCloseProfile} 
+          onSignOut={handleSignOut}
+        />
+      )}
+
       {/* LANDING PAGE CONTAINER */}
       <div className={`
         fixed inset-0 flex flex-col items-center justify-center transition-all duration-[1200ms] ease-in-out z-[200]
@@ -281,7 +421,7 @@ function App() {
       </div>
 
       {showMainLayout && (
-        <div className="fixed inset-0 z-[200] flex flex-col pointer-events-auto animate-fade-in">
+        <div className="fixed inset-0 z-[200] flex flex-col pointer-events-auto">
           <div 
             onClick={() => setIsMobileMenuOpen(false)}
             className={`fixed inset-0 z-[2900] bg-[#050505]/95 backdrop-blur-[60px] transition-all duration-700 flex flex-col items-center justify-center ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto scale-100' : 'opacity-0 pointer-events-none scale-110'}`}

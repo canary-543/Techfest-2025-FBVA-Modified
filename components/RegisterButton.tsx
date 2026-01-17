@@ -94,22 +94,22 @@ const RegisterButton: React.FC<RegisterButtonProps> = ({
           </span>
         </div>
       ) : (
-        <div className="relative z-10 flex flex-row items-center gap-2.5 md:gap-3.5 w-full h-full px-4 md:px-6 justify-start animate-fade-in">
+        <div className="relative z-10 flex flex-row items-center gap-2.5 md:gap-3.5 w-full h-full px-4 md:px-6 justify-start">
           
           {/* IMAGE CLONE: Increased PFP size on the Left */}
           <div className="w-9 h-9 md:w-11 md:h-11 rounded-full border border-fuchsia-500/25 flex items-center justify-center bg-fuchsia-500/10 shrink-0 shadow-[0_0_12px_rgba(217,70,239,0.2)]">
             <UserIcon />
           </div>
           
-          {/* IMAGE CLONE: Stacked text to the right */}
+          {/* IMAGE CLONE: Stacked text to the right - COMPACT HANDLE */}
           <div className="flex flex-col items-start min-w-0 flex-1 justify-center py-1">
             {/* Username Line */}
-            <span className="text-white font-anton text-sm md:text-base tracking-wide leading-none uppercase drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] whitespace-nowrap overflow-hidden text-ellipsis w-full">
+            <span className="text-white font-anton text-[10px] md:text-[11px] tracking-wider leading-none drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] whitespace-nowrap overflow-hidden text-ellipsis w-full">
               {registeredUser.username.startsWith('@') ? registeredUser.username : `@${registeredUser.username}`}
             </span>
             
             {/* Name Line */}
-            <span className="text-gray-400/80 font-space text-[10px] md:text-[11px] tracking-[0.05em] font-bold uppercase whitespace-nowrap overflow-hidden text-ellipsis w-full mt-0.5">
+            <span className="text-gray-400/80 font-space text-[10px] md:text-[11px] tracking-[0.05em] font-bold whitespace-nowrap overflow-hidden text-ellipsis w-full mt-0.5">
               {registeredUser.firstName} {registeredUser.lastName}
             </span>
           </div>
