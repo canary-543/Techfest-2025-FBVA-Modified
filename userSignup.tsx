@@ -60,7 +60,7 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
 
   const isFieldValid = (name: string): boolean => {
     if (name === 'middleName') return true;
-    if (name === 'username') return formData.username.length >= 9;
+    if (name === 'username') return formData.username.length >= 8; // UPDATED: min 8 characters
     if (name === 'firstName') return !!formData.firstName;
     if (name === 'lastName') return !!formData.lastName;
     if (name === 'college') return !!formData.college;
@@ -94,8 +94,30 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
     setFormData({ ...formData, [name]: formatted });
   };
 
+  // Special handler for "Other College" field - Implements automatic Title Case
+  const handleOtherCollegeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    
+    // Split by spaces, capitalize first char of each word, rest lowercase
+    const formatted = val.split(' ').map(word => {
+      if (word.length === 0) return '';
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    }).join(' ');
+    
+    setFormData({ ...formData, otherCollege: formatted });
+  };
+
   const handleCollegeSelect = (college: string) => {
-    setFormData({ ...formData, college });
+    // When college changes, we must SANITIZE the state of conditional fields
+    setFormData({ 
+      ...formData, 
+      college,
+      otherCollege: '' // Clear "Others" text when selecting any college
+    });
+    
+    // Clear registration digits whenever college selection changes
+    setRegIdDigits(new Array(11).fill(''));
+    
     setIsDropdownOpen(false);
   };
 
@@ -212,13 +234,13 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
   return (
     <div className="w-full h-full bg-transparent relative flex flex-col items-center pt-8 md:pt-12 px-6 overflow-y-auto custom-scrollbar no-horizontal-scroll pb-32">
       
-      {/* SUCCESS NOTIFICATION TOAST - CRITICAL VISIBILITY FIX */}
+      {/* SUCCESS NOTIFICATION TOAST */}
       <div 
         className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[999999] w-[92%] max-w-md pointer-events-none transition-all duration-1000 cubic-bezier(0.19, 1, 0.22, 1) ${submissionPhase === 'IDLE' ? 'translate-y-40 opacity-0' : 'translate-y-0 opacity-100'}`}
       >
         <div className="bg-white rounded-[2rem] p-5 md:p-6 shadow-[0_40px_100px_rgba(0,0,0,0.6)] flex items-center gap-5 overflow-hidden relative border-b-4 border-fuchsia-500 pointer-events-auto">
           
-          {/* ICON SECTION - PERFECTED CENTERING */}
+          {/* ICON SECTION */}
           <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
             {/* Phase 1 Icon: User with Spinner */}
             <div className={`absolute inset-0 flex items-center justify-center transition-all duration-700 ${submissionPhase === 'PROCESSING' ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}>
@@ -241,7 +263,7 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
             </div>
           </div>
 
-          {/* TEXT SECTION - SLIDING ANIMATIONS */}
+          {/* TEXT SECTION */}
           <div className="flex-1 relative h-12 overflow-hidden">
             {/* Phase 1 Text */}
             <div className={`absolute inset-0 flex items-center gap-1 transition-all duration-700 ease-in-out ${submissionPhase === 'PROCESSING' ? 'translate-y-0 opacity-100' : '-translate-y-12 opacity-0'}`}>
@@ -283,7 +305,7 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
               onFocus={() => setFocusedField('username')}
               onBlur={() => setFocusedField(null)}
               onChange={handleUsernameChange}
-              placeholder="@username (min 9 chars)"
+              placeholder="@username (min 8 chars)"
               className={getTextFieldStyle('username', formData.username.length > 1, focusedField === 'username')}
               autoComplete="off"
             />
@@ -309,9 +331,9 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
           </div>
         </div>
 
-        {/* Middle Name */}
+        {/* Middle Name - FIXED: Turns white when value exists */}
         <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8 animate-stagger-up" style={{ animationDelay: '200ms' }}>
-          <label className="md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase text-white/30 group-hover:text-white">
+          <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase transition-all duration-500 ${formData.middleName ? 'text-white' : 'text-white/30'} group-hover:text-white`}>
             MIDDLE NAME:
           </label>
           <div className="flex-1">
@@ -419,7 +441,7 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
           </div>
         </div>
 
-        {/* Specified College Input (Conditional) */}
+        {/* Specified College Input (Conditional) - UPDATED with Title Case handler */}
         {formData.college === 'Others' && (
           <div className="flex flex-col md:flex-row md:items-center gap-3 group mb-6 md:mb-8 animate-fade-in-up">
             <label className={`md:w-[42%] text-lg md:text-2xl font-anton tracking-[0.08em] transition-all duration-500 uppercase ${shouldShowFieldLevelError('otherCollege') ? 'text-red-500' : (formData.otherCollege ? 'text-white' : 'text-white/30')} group-hover:text-white`}>
@@ -432,7 +454,7 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
                 value={formData.otherCollege}
                 onFocus={() => setFocusedField('otherCollege')}
                 onBlur={() => setFocusedField(null)}
-                onChange={handleNameChange}
+                onChange={handleOtherCollegeChange}
                 placeholder="ENTER YOUR COLLEGE NAME"
                 className={getTextFieldStyle('otherCollege', !!formData.otherCollege, focusedField === 'otherCollege')}
               />
@@ -450,7 +472,7 @@ const UserSignup: React.FC<UserSignupProps> = ({ onSuccess }) => {
               {regIdDigits.map((digit, idx) => {
                 const isFocused = focusedRegIdIdx === idx;
                 const hasValue = !!digit;
-                const isBlockInError = hasSubmittedOnce && !isFieldValid('phone') && !hasValue && !isFocused;
+                const isBlockInError = hasSubmittedOnce && !isFieldValid('regId') && !hasValue && !isFocused;
 
                 return (
                   <div key={idx} className="relative w-full h-full">

@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 
@@ -198,6 +199,8 @@ const Modules: React.FC = () => {
   const [isYearForward, setIsYearForward] = useState(false);
   const yearResetTimer = useRef<number | null>(null);
 
+  const FORM_LINK = "https://forms.gle/b28pZtJJNLdeEPYv5";
+
   useEffect(() => {
     if (activePage === 6) {
       const timer = setTimeout(() => {
@@ -252,6 +255,10 @@ const Modules: React.FC = () => {
   const handleViewModuleDetails = (index: number) => {
     scrollToContent();
     setActivePage(index);
+  };
+
+  const handleFillForm = () => {
+    window.open(FORM_LINK, '_blank');
   };
 
   const getContainerTranslation = () => {
@@ -349,6 +356,10 @@ const Modules: React.FC = () => {
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(217, 70, 239, 0.3); border-radius: 10px; }
+        
+        @keyframes shimmer-btn {
+          100% { transform: translateX(100%); }
+        }
       `}</style>
       
       <AIAssistant />
@@ -422,8 +433,8 @@ const Modules: React.FC = () => {
                   <p className="text-[7px] md:text-xs font-medium font-mono uppercase tracking-[0.1em] mb-2 md:mb-6 text-white opacity-40">{MODULES_DATA[5].shortDesc}</p>
                   <p className="text-gray-300 text-[10px] md:text-base font-space max-w-[140px] md:max-w-md mb-3 md:mb-8 opacity-90 leading-relaxed overflow-hidden line-clamp-4 md:line-clamp-6">{MODULES_DATA[5].longDesc}</p>
                   <div className="absolute bottom-12 md:bottom-12 left-1/2 -translate-x-1/2 w-full flex justify-center px-4 md:px-16">
-                     <button className="w-full max-w-[100px] md:max-w-[200px] py-1.5 md:py-3.5 bg-[#0a1528]/90 border border-red-500/40 text-white font-anton tracking-[0.2em] text-[8px] md:text-sm rounded-[2rem] hover:bg-red-500 hover:border-red-500 transition-all duration-300 shadow-[0_0_20px_rgba(239,68,68,0.15)] uppercase">
-                       JOIN
+                     <button onClick={handleFillForm} className="w-full max-w-[100px] md:max-w-[200px] py-1.5 md:py-3.5 bg-[#0a1528]/90 border border-red-500/40 text-white font-anton tracking-[0.2em] text-[8px] md:text-sm rounded-[2rem] hover:bg-red-500 hover:border-red-500 transition-all duration-300 shadow-[0_0_20px_rgba(239,68,68,0.15)] uppercase">
+                       FILL FORM
                      </button>
                   </div>
                   <button onClick={handleNextPage} className="absolute bottom-4 right-4 md:bottom-10 md:right-10 w-8 h-8 md:w-14 md:h-14 flex items-center justify-center bg-white/5 border border-white/10 rounded-full hover:bg-fuchsia-500 hover:text-white transition-all shadow-lg group">
@@ -463,8 +474,8 @@ const Modules: React.FC = () => {
                      <p className="text-[7px] md:text-xs font-medium font-mono uppercase tracking-[0.1em] mb-2 md:mb-6 text-white opacity-40">{module.shortDesc}</p>
                      <p className="text-gray-300 text-[10px] md:text-base font-space max-w-[140px] md:max-w-md mb-3 md:mb-8 opacity-95 leading-relaxed overflow-hidden line-clamp-4 md:line-clamp-6">{module.longDesc}</p>
                      <div className="absolute bottom-12 md:bottom-12 left-1/2 -translate-x-1/2 w-full flex justify-center px-4 md:px-16">
-                        <button className={`w-full max-w-[100px] md:max-w-[200px] py-1.5 md:py-3.5 bg-[#0a1528]/90 border border-${module.color}-500/40 text-white font-anton tracking-[0.2em] text-[8px] md:text-sm rounded-[2rem] hover:bg-fuchsia-500 hover:border-fuchsia-500 transition-all duration-300 shadow-[0_0_25px_rgba(217,70,239,0.2)] uppercase`}>
-                          JOIN
+                        <button onClick={handleFillForm} className={`w-full max-w-[100px] md:max-w-[200px] py-1.5 md:py-3.5 bg-[#0a1528]/90 border border-${module.color}-500/40 text-white font-anton tracking-[0.2em] text-[8px] md:text-sm rounded-[2rem] hover:bg-fuchsia-500 hover:border-fuchsia-500 transition-all duration-300 shadow-[0_0_25px_rgba(217,70,239,0.2)] uppercase`}>
+                          FILL FORM
                         </button>
                      </div>
                      <button onClick={handleNextPage} className="absolute bottom-4 right-4 md:bottom-10 md:right-10 w-8 h-8 md:w-14 md:h-14 flex items-center justify-center bg-white/5 border border-white/10 rounded-full hover:bg-fuchsia-500 hover:text-white transition-all shadow-lg group"><svg className="w-4 h-4 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg></button>
@@ -517,7 +528,7 @@ const Modules: React.FC = () => {
           </h3>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-10 w-full mb-32">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-10 w-full mb-12">
           {MODULES_DATA.map((module, idx) => (
             <div 
               key={module.id} 
@@ -545,6 +556,18 @@ const Modules: React.FC = () => {
               </button>
             </div>
           ))}
+        </div>
+
+        {/* NEW GLOBAL FILL FORM BUTTON */}
+        <div className="mt-4 flex flex-col items-center gap-6">
+          <button 
+            onClick={handleFillForm}
+            className="group relative px-12 md:px-16 py-4 md:py-5 bg-fuchsia-600 rounded-2xl text-white font-anton text-xl md:text-3xl tracking-[0.2em] uppercase transition-all duration-300 hover:scale-105 hover:bg-fuchsia-500 hover:shadow-[0_0_60px_rgba(217,70,239,0.5)] active:scale-95 overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:animate-[shimmer-btn_1.5s_infinite]"></div>
+            <span className="relative z-10">FILL FORM</span>
+          </button>
+          <div className="h-0.5 w-16 bg-fuchsia-500/30"></div>
         </div>
       </section>
 
