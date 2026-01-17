@@ -16,14 +16,16 @@ import Modules from './components/Modules';
 import Events from './components/Events';
 import Team from './components/Team';
 import UserSignup from './userSignup';
+import UserDashboard from './userDashboard';
 
 // --- PROFILE CARD COMPONENT ---
 const ProfileCard: React.FC<{ 
   user: { username: string, firstName: string, lastName: string }, 
   isClosing: boolean,
   onClose: () => void,
-  onSignOut: () => void 
-}> = ({ user, isClosing, onClose, onSignOut }) => {
+  onSignOut: () => void,
+  onDashboardClick: () => void
+}> = ({ user, isClosing, onClose, onSignOut, onDashboardClick }) => {
   return (
     <div className="fixed inset-0 z-[2500] pointer-events-none">
       {/* Backdrop - NOW COMPLETELY TRANSPARENT, NO FADE/DIM */}
@@ -83,7 +85,7 @@ const ProfileCard: React.FC<{
 
         {/* Actions - RENAMED AND LOWERED, UNBOUNDED FONT */}
         <div className="w-full flex flex-col gap-1.5 px-3 pb-3 relative z-10">
-          <button className="w-full h-11 bg-fuchsia-500/5 hover:bg-fuchsia-500/10 border border-fuchsia-500/20 hover:border-fuchsia-500/50 text-white font-unbounded text-[9px] md:text-[10px] font-black tracking-[0.1em] uppercase transition-all duration-300 rounded-lg">
+          <button onClick={onDashboardClick} className="w-full h-11 bg-fuchsia-500/5 hover:bg-fuchsia-500/10 border border-fuchsia-500/20 hover:border-fuchsia-500/50 text-white font-unbounded text-[9px] md:text-[10px] font-black tracking-[0.1em] uppercase transition-all duration-300 rounded-lg">
              DASHBOARDS
           </button>
           
@@ -149,8 +151,10 @@ function App() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [bgBurst, setBgBurst] = useState(0);
 
-  // Registration Sequence State
+  // Registration & Dashboard Sequence State
   const [registrationPhase, setRegistrationPhase] = useState<'IDLE' | 'EXPANDED'>('IDLE');
+  const [dashboardPhase, setDashboardPhase] = useState<'IDLE' | 'EXPANDED'>('IDLE');
+  
   const [registeredUser, setRegisteredUser] = useState<{username: string, firstName: string, lastName: string} | null>(null);
   const [isProfileCardOpen, setIsProfileCardOpen] = useState(false);
   const [isProfileClosing, setIsProfileClosing] = useState(false);
@@ -225,12 +229,18 @@ function App() {
       setTimeout(() => {
           setRegisteredUser(null);
           setRegistrationPhase('IDLE');
+          setDashboardPhase('IDLE');
       }, 500);
 
       setTimeout(() => {
           setIsTransitioning(false);
       }, 1200);
     }, 600);
+  };
+
+  const handleDashboardClick = () => {
+    handleCloseProfile();
+    setDashboardPhase('EXPANDED');
   };
 
   const handleRegistrationSuccess = (userData: {username: string, firstName: string, lastName: string}) => {
@@ -243,6 +253,10 @@ function App() {
   const handleHomeBack = () => {
       if (registrationPhase === 'EXPANDED') {
           setRegistrationPhase('IDLE');
+          return;
+      }
+      if (dashboardPhase === 'EXPANDED') {
+          setDashboardPhase('IDLE');
           return;
       }
       setIsTransitioning(true);
@@ -341,6 +355,7 @@ function App() {
           isClosing={isProfileClosing}
           onClose={handleCloseProfile} 
           onSignOut={handleSignOut}
+          onDashboardClick={handleDashboardClick}
         />
       )}
 
@@ -428,7 +443,13 @@ function App() {
           >
              <nav onClick={(e) => e.stopPropagation()} className="flex flex-col items-center gap-10 md:gap-14">
                 <div className={`transition-all duration-700 ${isMobileMenuOpen ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-90'}`} style={{ transitionDelay: '50ms' }}>
-                   <RegisterButton onClick={handleRegisterClick} size="lg" className="mb-10" isRegistered={registrationPhase === 'EXPANDED'} registeredUser={registeredUser} />
+                   <RegisterButton 
+                     onClick={handleRegisterClick} 
+                     size="lg" 
+                     className="mb-10" 
+                     isRegistered={registrationPhase === 'EXPANDED'} 
+                     registeredUser={registeredUser} 
+                   />
                 </div>
                 {SECTIONS.map((section, idx) => (
                     <button key={section} onClick={() => handleSectionSelect(section)} className={`text-4xl md:text-7xl font-anton tracking-widest transition-all duration-500 hover:scale-110 active:scale-95 ${currentSection === section ? 'text-fuchsia-500 drop-shadow-[0_0_20px_rgba(217,70,239,0.6)]' : 'text-white/60 hover:text-white'}`} style={{ transitionDelay: isMobileMenuOpen ? `${(idx + 2) * 100}ms` : '0ms' }}>
@@ -447,7 +468,12 @@ function App() {
             </div>
             
             <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2">
-              <NavbarSlider initialSection={currentSection} onSelect={handleSectionSelect} registrationPhase={registrationPhase} />
+              <NavbarSlider 
+                initialSection={currentSection} 
+                onSelect={handleSectionSelect} 
+                registrationPhase={registrationPhase}
+                dashboardPhase={dashboardPhase}
+              />
             </div>
 
             <div className="flex items-center gap-2 md:gap-6 shrink-0 relative z-[3100]">
@@ -470,6 +496,8 @@ function App() {
           <div className="flex-1 w-full relative overflow-hidden mt-20 md:mt-24">
             {registrationPhase === 'EXPANDED' ? (
               <UserSignup onSuccess={handleRegistrationSuccess} />
+            ) : dashboardPhase === 'EXPANDED' ? (
+              <UserDashboard />
             ) : (
               <div className="flex w-full h-full transition-transform duration-[800ms] ease-[cubic-bezier(0.19,1,0.22,1)]" style={{ transform: `translateX(-${activeSectionIndex * 100}vw)` }}>
                 <SectionView title="HOME"><Home onBack={handleHomeBack} onSectionChange={handleSectionSelect} initialSection={currentSection} hideNavbar={true} /></SectionView>
