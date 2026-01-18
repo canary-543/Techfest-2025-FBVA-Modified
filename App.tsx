@@ -146,6 +146,9 @@ function App() {
   const [registrationPhase, setRegistrationPhase] = useState<'IDLE' | 'EXPANDED'>('IDLE');
   const [dashboardPhase, setDashboardPhase] = useState<'IDLE' | 'EXPANDED'>('IDLE');
   
+  // Sign-in Blur Sequence State
+  const [signInPhase, setSignInPhase] = useState<'IDLE' | 'BLURRING'>('IDLE');
+
   const [registeredUser, setRegisteredUser] = useState<UserData | null>(null);
   const [isProfileCardOpen, setIsProfileCardOpen] = useState(false);
   const [isProfileClosing, setIsProfileClosing] = useState(false);
@@ -200,7 +203,17 @@ function App() {
         setIsProfileCardOpen(true);
         setIsProfileClosing(false);
     } else {
-        setRegistrationPhase('EXPANDED');
+        // --- START CLEAN BLUR SEQUENCE ---
+        setSignInPhase('BLURRING');
+
+        // Create a backend log similar to userSignup.tsx submission
+        console.log('✅ [LOG] Sign-in Done!');
+        
+        // After initial blur onset, move to the registration view
+        setTimeout(() => {
+          setSignInPhase('IDLE');
+          setRegistrationPhase('EXPANDED');
+        }, 1200);
     }
   };
 
@@ -333,8 +346,15 @@ function App() {
   const vibrantRingGradient = `conic-gradient(from 0deg, #facc15, #f97316, #ef4444, #ec4899, #d946ef, #3b82f6, #1e3a8a, #facc15)`;
 
   return (
-    <div className="min-h-screen w-full text-white flex flex-col items-center justify-center relative overflow-hidden font-sans bg-[#050505]">
+    <div className={`min-h-screen w-full text-white flex flex-col items-center justify-center relative overflow-hidden font-sans bg-[#050505] transition-[filter] duration-700 ${signInPhase !== 'IDLE' ? 'heavy-blur' : ''}`}>
       
+      {/* SIGN-IN TRANSITION OVERLAY - PURE BLUR ONLY */}
+      {signInPhase !== 'IDLE' && (
+        <div className="fixed inset-0 z-[6000] flex items-center justify-center backdrop-blur-2xl transition-all duration-700 bg-black/20">
+          {/* Content stripped as per request: no text written behind the blur */}
+        </div>
+      )}
+
       <div 
         className={`fixed inset-0 z-0 transition-opacity duration-1000 ${showMainLayout ? 'opacity-40' : 'opacity-100'}`}
         style={{
